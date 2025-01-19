@@ -138,7 +138,7 @@ const MyInterviewPage = () => {
     <div className="flex flex-col h-screen bg-gray-800 text-white">
       {/* Upper Section: Video and Interview Description */}
       <div className="flex items-center justify-between px-8 py-6 bg-[#212121]">
-        <div className="w-56 h-32  border-2 border-green-500 overflow-hidden shadow-xl rounded-md">
+        <div className="w-56 h-32   overflow-hidden shadow-xl rounded-md">
           <video
             ref={videoRef}
             autoPlay
@@ -147,16 +147,16 @@ const MyInterviewPage = () => {
           />
         </div>
         <div className="ml-6 text-center text-gray-300">
-          <h2 className="text-2xl font-semibold text-blue-400 mb-2">
+          <h2 className="text-2xl font-semibold font-mono text-slate-200 mb-2">
             Interview in Progress
           </h2>
-          <p className="text-lg">
+          <p className="text-lg font-mono">
             Answer the questions with your best abilities. Good luck!
           </p>
         </div>
-        <div className="text-lg font-semibold text-white">
+        <div className="text-2xl font-semibold font-mono text-white">
           Time Left:{" "}
-          <span className="text-blue-400">{formatTime(timeLeft)}</span>
+          <span className="text-red-500">{formatTime(timeLeft)}</span>
         </div>
       </div>
 
@@ -172,10 +172,10 @@ const MyInterviewPage = () => {
           </p>
 
           {/* Fixed Next Question Button */}
-          <div className="mt-auto">
+          <div className="mt-auto ">
             <button
               onClick={moveToNextQuestion}
-              className="py-2 px-8 mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 ease-in-out"
+              className="py-2 px-8 mt-4 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-opacity-50 transition duration-300 ease-in-out"
             >
               Next Question
             </button>
@@ -192,7 +192,7 @@ const MyInterviewPage = () => {
                 extensions={[javascript()]}
                 theme={oneDark}
                 onChange={(value) => saveCodeSolution(value)}
-                className="rounded-lg border border-gray-700"
+                className="rounded-lg border border-gray-700 text-xl"
               />
               <button
                 onClick={runCode}
