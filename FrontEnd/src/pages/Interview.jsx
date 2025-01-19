@@ -28,7 +28,6 @@ const MyInterviewPage = () => {
     resetTranscript,
     browserSupportsSpeechRecognition,
   } = useSpeechRecognition();
-
   const currentQuestion = questions[currentQuestionIndex];
 
   useEffect(() => {
@@ -45,7 +44,6 @@ const MyInterviewPage = () => {
   const moveToNextQuestion = () => {
     saveCurrentAnswer();
     SpeechRecognition.stopListening();
-
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
       resetTranscript();
@@ -107,10 +105,8 @@ const MyInterviewPage = () => {
   const speakQuestion = (text) => {
     if ("speechSynthesis" in window) {
       const utterance = new SpeechSynthesisUtterance(text);
-
       const voices = window.speechSynthesis.getVoices();
       console.log("Available Voices:", voices);
-
       utterance.lang = "en-US";
       utterance.rate = 1;
       utterance.pitch = 1;
@@ -139,35 +135,60 @@ const MyInterviewPage = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-gray-800 to-gray-900 text-white">
-      {/* Container */}
-      <div className="flex flex-col lg:flex-row items-center justify-between w-full max-w-6xl p-6 shadow-2xl bg-gray-950 rounded-xl">
-        {/* Video Stream */}
-        <div className="flex flex-col items-center w-full lg:w-1/2 mb-6 lg:mb-0">
-          <div className="w-60 h-60 lg:w-72 lg:h-72 rounded-full overflow-hidden border-4 border-blue-600 shadow-xl">
-            <video ref={videoRef} autoPlay muted className="w-full h-full" />
-          </div>
-          <p className="mt-4 text-lg text-gray-400 text-center">
-            You are being recorded. Stay confident!
+    <div className="flex flex-col h-screen bg-gray-800 text-white">
+      {/* Upper Section: Video and Interview Description */}
+      <div className="flex items-center justify-between px-8 py-6 bg-[#212121]">
+        <div className="w-56 h-32  border-2 border-green-500 overflow-hidden shadow-xl rounded-md">
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            className="w-56 h-32 object-cover"
+          />
+        </div>
+        <div className="ml-6 text-center text-gray-300">
+          <h2 className="text-2xl font-semibold text-blue-400 mb-2">
+            Interview in Progress
+          </h2>
+          <p className="text-lg">
+            Answer the questions with your best abilities. Good luck!
           </p>
         </div>
+        <div className="text-lg font-semibold text-white">
+          Time Left:{" "}
+          <span className="text-blue-400">{formatTime(timeLeft)}</span>
+        </div>
+      </div>
 
-        {/* Question and Answer Section */}
-        <div className="flex flex-col justify-between w-full lg:w-1/2 bg-gray-800 rounded-xl p-8 shadow-lg">
-          <div className="mb-6">
-            <p className="text-2xl font-bold text-blue-400">
-              Question {currentQuestionIndex + 1}
-            </p>
-            <p className="text-lg mt-4 text-gray-300">{currentQuestion}</p>
+      {/* Lower Section: Question and Answer / Code Editor */}
+      <div className="flex h-full">
+        {/* Question Section */}
+        <div className="flex flex-col justify-between items-center w-1/2 px-8 py-6 bg-white overflow-y-auto">
+          <p className="text-2xl font-bold text-black text-center">
+            Question {currentQuestionIndex + 1}
+          </p>
+          <p className="text-lg mt-4 text-black font-mono text-center bg-[#E0E0E0] shadow-xl">
+            {currentQuestion}
+          </p>
+
+          {/* Fixed Next Question Button */}
+          <div className="mt-auto">
+            <button
+              onClick={moveToNextQuestion}
+              className="py-2 px-8 mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 ease-in-out"
+            >
+              Next Question
+            </button>
           </div>
+        </div>
 
-          {/* Code Editor for Last 2 Coding Problems */}
+        {/* Answer or Code Editor Section */}
+        <div className="w-1/2 bg-[#424242] p-8 flex flex-col justify-between">
           {currentQuestionIndex >= questions.length - 2 ? (
-            <div className="mb-6">
-              <p className="text-lg font-semibold mb-3">Code Editor:</p>
+            <div>
               <CodeMirror
                 value={codeSolutions[currentQuestionIndex]}
-                height="300px"
+                height="330px"
                 extensions={[javascript()]}
                 theme={oneDark}
                 onChange={(value) => saveCodeSolution(value)}
@@ -179,33 +200,21 @@ const MyInterviewPage = () => {
               >
                 Run Code
               </button>
-              <div className="mt-4 bg-gray-900 p-4 rounded-lg text-gray-200 border border-gray-700">
+              <div className="mt-4 bg-[#212121] p-4 rounded-lg text-gray-200 border border-gray-700">
                 <p className="font-semibold text-lg">Output:</p>
                 <pre className="mt-2 whitespace-pre-wrap">{output}</pre>
               </div>
             </div>
           ) : (
             <div className="mb-6">
-              <p className="text-lg font-semibold mb-3">Your Answer:</p>
-              <div className="bg-gray-900 text-gray-200 p-4 rounded-lg h-28 overflow-y-auto border border-gray-700">
+              <p className="text-lg font-semibold text-white mb-3">
+                Your Answer:
+              </p>
+              <div className="bg-[#212121] text-gray-200 font-mono text-xl p-4 rounded-lg h-96 overflow-y-auto ">
                 {transcript || "Start speaking your answer..."}
               </div>
             </div>
           )}
-
-          {/* Timer and Next Button */}
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-400">
-              Time Left:{" "}
-              <span className="text-blue-400">{formatTime(timeLeft)}</span>
-            </p>
-            <button
-              onClick={moveToNextQuestion}
-              className="py-2 px-8 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 ease-in-out"
-            >
-              Next Question
-            </button>
-          </div>
         </div>
       </div>
     </div>
