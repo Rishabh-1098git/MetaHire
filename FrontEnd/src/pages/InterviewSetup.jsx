@@ -61,12 +61,22 @@ const InterviewSetup = () => {
 
     try {
       const prompt = `Generate 10 interview questions for the following details in the format of a single string separated by '|':
-      - Role: ${formData.role}
-      - Level: ${formData.level}
-      - Experience: ${formData.experience} years
-      - Technologies: ${formData.technologies.join(", ")}
-      - Target Company: ${formData.targetCompany}
-Ensure the questions are concise, relevant, and suitable for the specified role, level, and experience. Return the output as a string with each question separated by '|'.`;
+  - Role: ${formData.role}
+  - Level: ${formData.level}
+  - Experience: ${formData.experience} years
+  - Technologies: ${formData.technologies.join(", ")}
+  - Target Company: ${formData.targetCompany}
+
+Ensure the first 8 questions include a mix of behavioral and technical questions that are concise, relevant, and suitable for the specified role, level, and experience. The last 2 questions should be coding problems with the following structure:
+
+1. Problem description: A concise explanation of the task.
+2. Input: Clearly defined input format.
+3. Output: Clearly defined output format.
+4. Example:
+   - Input: [example input]
+   - Output: [expected output]
+
+Return the output as a single string with each question separated by '|'.`;
 
       const { data } = await axios.post("http://localhost:5000/api/gemini", {
         prompt,

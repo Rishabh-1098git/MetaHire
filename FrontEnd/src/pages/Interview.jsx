@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
+import CodeMirror from "@uiw/react-codemirror";
+import { javascript } from "@codemirror/lang-javascript";
+import { oneDark } from "@codemirror/theme-one-dark"; // Dark theme
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
@@ -9,9 +12,14 @@ const MyInterviewPage = () => {
   const questions = location.state?.questions || [];
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(120); // 2 minutes = 120 seconds
+  const [timeLeft, setTimeLeft] = useState(120); // 2 minutes
   const [isTimerRunning, setIsTimerRunning] = useState(true);
   const [answers, setAnswers] = useState(Array(questions.length).fill(""));
+  const [codeSolutions, setCodeSolutions] = useState(
+    Array(questions.length).fill("// Write your solution here...")
+  );
+  const [output, setOutput] = useState("");
+
   const videoRef = useRef(null);
 
   const {
@@ -45,7 +53,8 @@ const MyInterviewPage = () => {
     } else {
       alert("Interview finished! Great job!");
       setIsTimerRunning(false);
-      console.log(answers);
+      console.log("Answers:", answers);
+      console.log("Code Solutions:", codeSolutions);
     }
   };
 
@@ -73,10 +82,21 @@ const MyInterviewPage = () => {
   const saveCurrentAnswer = () => {
     setAnswers((prevAnswers) => {
       const updatedAnswers = [...prevAnswers];
-      updatedAnswers[currentQuestionIndex] = transcript.trim();
+      updatedAnswers[currentQuestionIndex] =
+        currentQuestionIndex >= questions.length - 2
+          ? codeSolutions[currentQuestionIndex]
+          : transcript.trim();
       return updatedAnswers;
     });
     resetTranscript();
+  };
+
+  const saveCodeSolution = (code) => {
+    setCodeSolutions((prevSolutions) => {
+      const updatedSolutions = [...prevSolutions];
+      updatedSolutions[currentQuestionIndex] = code;
+      return updatedSolutions;
+    });
   };
 
   const resetTimer = () => {
@@ -101,6 +121,15 @@ const MyInterviewPage = () => {
     }
   };
 
+  const runCode = () => {
+    try {
+      const result = eval(codeSolutions[currentQuestionIndex]);
+      setOutput(result === undefined ? "Code executed successfully!" : result);
+    } catch (error) {
+      setOutput(`Error: ${error.message}`);
+    }
+  };
+
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -110,12 +139,12 @@ const MyInterviewPage = () => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen w-screen bg-gray-900 text-white">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-gray-800 to-gray-900 text-white">
       {/* Container */}
-      <div className="flex flex-col lg:flex-row items-center justify-between w-full max-w-5xl p-4 lg:p-8">
+      <div className="flex flex-col lg:flex-row items-center justify-between w-full max-w-6xl p-6 shadow-2xl bg-gray-950 rounded-xl">
         {/* Video Stream */}
         <div className="flex flex-col items-center w-full lg:w-1/2 mb-6 lg:mb-0">
-          <div className="w-56 h-56 lg:w-64 lg:h-64 rounded-full overflow-hidden border-4 border-blue-500 shadow-lg">
+          <div className="w-60 h-60 lg:w-72 lg:h-72 rounded-full overflow-hidden border-4 border-blue-600 shadow-xl">
             <video ref={videoRef} autoPlay muted className="w-full h-full" />
           </div>
           <p className="mt-4 text-lg text-gray-400 text-center">
@@ -124,19 +153,47 @@ const MyInterviewPage = () => {
         </div>
 
         {/* Question and Answer Section */}
-        <div className="flex flex-col justify-between w-full lg:w-1/2 bg-gray-800 rounded-lg p-6 shadow-lg h-80">
-          <div className="mb-4">
-            <p className="text-xl font-bold">
-              Question {currentQuestionIndex + 1}:
+        <div className="flex flex-col justify-between w-full lg:w-1/2 bg-gray-800 rounded-xl p-8 shadow-lg">
+          <div className="mb-6">
+            <p className="text-2xl font-bold text-blue-400">
+              Question {currentQuestionIndex + 1}
             </p>
-            <p className="text-lg mt-2 text-gray-300">{currentQuestion}</p>
+            <p className="text-lg mt-4 text-gray-300">{currentQuestion}</p>
           </div>
-          <div className="mb-4">
-            <p className="text-lg font-semibold mb-2">Your Answer:</p>
-            <div className="bg-gray-900 text-gray-200 p-4 rounded-lg h-20 overflow-auto">
-              {transcript || "Start speaking your answer..."}
+
+          {/* Code Editor for Last 2 Coding Problems */}
+          {currentQuestionIndex >= questions.length - 2 ? (
+            <div className="mb-6">
+              <p className="text-lg font-semibold mb-3">Code Editor:</p>
+              <CodeMirror
+                value={codeSolutions[currentQuestionIndex]}
+                height="300px"
+                extensions={[javascript()]}
+                theme={oneDark}
+                onChange={(value) => saveCodeSolution(value)}
+                className="rounded-lg border border-gray-700"
+              />
+              <button
+                onClick={runCode}
+                className="py-2 px-6 mt-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition duration-200 ease-in-out"
+              >
+                Run Code
+              </button>
+              <div className="mt-4 bg-gray-900 p-4 rounded-lg text-gray-200 border border-gray-700">
+                <p className="font-semibold text-lg">Output:</p>
+                <pre className="mt-2 whitespace-pre-wrap">{output}</pre>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="mb-6">
+              <p className="text-lg font-semibold mb-3">Your Answer:</p>
+              <div className="bg-gray-900 text-gray-200 p-4 rounded-lg h-28 overflow-y-auto border border-gray-700">
+                {transcript || "Start speaking your answer..."}
+              </div>
+            </div>
+          )}
+
+          {/* Timer and Next Button */}
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-400">
               Time Left:{" "}
@@ -144,7 +201,7 @@ const MyInterviewPage = () => {
             </p>
             <button
               onClick={moveToNextQuestion}
-              className="py-2 px-6 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition"
+              className="py-2 px-8 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 ease-in-out"
             >
               Next Question
             </button>
