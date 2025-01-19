@@ -30,6 +30,51 @@ const MyInterviewPage = () => {
   } = useSpeechRecognition();
   const currentQuestion = questions[currentQuestionIndex];
 
+  // Function to go full screen when interview starts
+  const enterFullScreen = () => {
+    const doc = document.documentElement;
+    if (doc.requestFullscreen) {
+      doc.requestFullscreen();
+    } else if (doc.mozRequestFullScreen) {
+      // Firefox
+      doc.mozRequestFullScreen();
+    } else if (doc.webkitRequestFullscreen) {
+      // Chrome, Safari and Opera
+      doc.webkitRequestFullscreen();
+    } else if (doc.msRequestFullscreen) {
+      // IE/Edge
+      doc.msRequestFullscreen();
+    }
+    document.body.style.overflow = "hidden"; // Disable scrolling
+  };
+
+  // Function to exit full screen
+  const exitFullScreen = () => {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+      // Firefox
+      document.mozCancelFullScreen();
+    } else if (document.webkitExitFullscreen) {
+      // Chrome, Safari and Opera
+      document.webkitExitFullscreen();
+    } else if (document.msExitFullscreen) {
+      // IE/Edge
+      document.msExitFullscreen();
+    }
+    document.body.style.overflow = "auto"; // Enable scrolling
+  };
+
+  useEffect(() => {
+    // Enter full screen when the component mounts
+    enterFullScreen();
+
+    // Cleanup and exit full screen when the component unmounts or interview ends
+    return () => {
+      exitFullScreen();
+    };
+  }, []);
+
   useEffect(() => {
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
@@ -53,6 +98,7 @@ const MyInterviewPage = () => {
       setIsTimerRunning(false);
       console.log("Answers:", answers);
       console.log("Code Solutions:", codeSolutions);
+      exitFullScreen(); // Exit full screen when interview ends
     }
   };
 
@@ -167,7 +213,7 @@ const MyInterviewPage = () => {
           <p className="text-2xl font-bold text-black text-center">
             Question {currentQuestionIndex + 1}
           </p>
-          <p className="text-lg mt-4 text-black font-mono text-center bg-[#E0E0E0] shadow-xl">
+          <p className="text-xl mt-4 text-black font-mono text-center bg-[#E0E0E0] shadow-xl">
             {currentQuestion}
           </p>
 

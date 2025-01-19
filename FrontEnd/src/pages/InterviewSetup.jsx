@@ -67,7 +67,7 @@ const InterviewSetup = () => {
   - Technologies: ${formData.technologies.join(", ")}
   - Target Company: ${formData.targetCompany}
 
-Ensure the first 8 questions include a mix of behavioral and technical questions that are concise, relevant, and suitable for the specified role, level, and experience. The last 2 questions should be coding problems with the following structure:
+Ensure the first 8 questions include a mix of behavioral and technical questions that are concise, relevant, and suitable for the specified role, level, and experience. The last 2 questions should be coding problems according to the level and experience with the following structure:
 
 1. Problem description: A concise explanation of the task.
 2. Input: Clearly defined input format.
