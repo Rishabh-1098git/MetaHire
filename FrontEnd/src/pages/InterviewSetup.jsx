@@ -126,10 +126,10 @@ Ensure the first 8 questions include a mix of behavioral, technical, and resume-
 
 The last 2 questions should be coding problems according to the level and experience with the following structure:
 
-1. Problem description: A concise explanation of the task.
-2. Input: Clearly defined input format.
-3. Output: Clearly defined output format.
-4. Example:
+ Problem description: A concise explanation of the task.
+ Input: Clearly defined input format.
+ Output: Clearly defined output format.
+ Example:
    - Input: [example input]
    - Output: [expected output]
 
@@ -143,7 +143,10 @@ Return the output as a single string with each question separated by '|'.`;
       const questions = responseData.questions;
 
       if (questions && questions.length > 0) {
-        navigate("/admin/interview-setup/interview", { state: { questions } });
+        const interviewId = Math.random().toString(36).substring(2, 10);
+        navigate(`/admin/interview/${interviewId}`, {
+          state: { questions, interviewId },
+        });
       } else {
         alert("No questions generated. Please try again.");
       }
@@ -161,25 +164,9 @@ Return the output as a single string with each question separated by '|'.`;
       justifyContent="center"
       alignItems="center"
       minHeight="100vh"
-      bgcolor="#f7f9fc"
       px={3}
     >
-      <Box
-        maxWidth={800}
-        width="100%"
-        bgcolor="white"
-        boxShadow={3}
-        borderRadius={2}
-        p={4}
-      >
-        <Typography
-          variant="h4"
-          textAlign="center"
-          fontWeight="bold"
-          gutterBottom
-        >
-          🎯 Set Up Your Interview
-        </Typography>
+      <Box maxWidth={800} width="100%" bgcolor="white" borderRadius={2} p={4}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={3}>
             {/* Role */}

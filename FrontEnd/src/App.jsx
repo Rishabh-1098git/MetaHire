@@ -5,6 +5,7 @@ import AuthPage from "./pages/AuthPage";
 import AdminPage from "./pages/AdminPage";
 import InterviewSetup from "./pages/InterviewSetup";
 import Interview from "./pages/Interview";
+import Feedback from "./pages/Feedback";
 
 const App = () => {
   return (
@@ -13,10 +14,10 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/signingsignup" element={<AuthPage />} />
         <Route path="/admin" element={<AdminPage />} />
-        <Route path="/admin/interview-setup" element={<InterviewSetup />} />
+        <Route path="/admin/interview/:interviewId" element={<Interview />} />
         <Route
-          path="/admin/interview-setup/interview"
-          element={<Interview />}
+          path="/admin/interview/:interviewId/results"
+          element={<Feedback />}
         />
       </Routes>
     </Router>

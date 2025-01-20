@@ -6,17 +6,21 @@ import { oneDark } from "@codemirror/theme-one-dark"; // Dark theme
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
+import { useNavigate } from "react-router-dom";
 
 const MyInterviewPage = () => {
   const location = useLocation();
   const questions = location.state?.questions || [];
+  const interviewId = location.state?.interviewId;
+
+  const navigate = useNavigate();
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(120); // 2 minutes
   const [isTimerRunning, setIsTimerRunning] = useState(true);
   const [answers, setAnswers] = useState(Array(questions.length).fill(""));
   const [codeSolutions, setCodeSolutions] = useState(
-    Array(2).fill("// Write your solution here...")
+    Array(questions.length).fill("// Write your solution here...")
   );
   const [output, setOutput] = useState("");
 
@@ -96,9 +100,15 @@ const MyInterviewPage = () => {
     } else {
       alert("Interview finished! Great job!");
       setIsTimerRunning(false);
+      answers[9] = codeSolutions[9];
       console.log("Answers:", answers);
       console.log("Code Solutions:", codeSolutions);
-      exitFullScreen(); // Exit full screen when interview ends
+      exitFullScreen();
+
+      // Navigate and pass the state (questions and answers)
+      navigate(`/admin/interview/${interviewId}/results`, {
+        state: { questions, answers },
+      });
     }
   };
 
@@ -153,7 +163,7 @@ const MyInterviewPage = () => {
       const utterance = new SpeechSynthesisUtterance(text);
       const voices = window.speechSynthesis.getVoices();
       console.log("Available Voices:", voices);
-      utterance.lang = "en-US";
+      utterance.lang = "en-GB";
       utterance.rate = 1;
       utterance.pitch = 1;
       window.speechSynthesis.cancel();
@@ -223,7 +233,9 @@ const MyInterviewPage = () => {
               onClick={moveToNextQuestion}
               className="py-2 px-8 mt-4 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-opacity-50 transition duration-300 ease-in-out"
             >
-              Next Question
+              {currentQuestionIndex == questions.length - 1
+                ? "Finish Interview"
+                : "Next Question"}
             </button>
           </div>
         </div>
