@@ -16,7 +16,7 @@ const MyInterviewPage = () => {
   const [isTimerRunning, setIsTimerRunning] = useState(true);
   const [answers, setAnswers] = useState(Array(questions.length).fill(""));
   const [codeSolutions, setCodeSolutions] = useState(
-    Array(questions.length).fill("// Write your solution here...")
+    Array(2).fill("// Write your solution here...")
   );
   const [output, setOutput] = useState("");
 
@@ -213,7 +213,7 @@ const MyInterviewPage = () => {
           <p className="text-2xl font-bold text-black text-center">
             Question {currentQuestionIndex + 1}
           </p>
-          <p className="text-xl mt-4 text-black font-mono text-center bg-[#E0E0E0] shadow-xl">
+          <p className="text-xl mt-4 text-black font-mono text-center bg-[#E0E0E0] shadow-xl h-96 p-10">
             {currentQuestion}
           </p>
 

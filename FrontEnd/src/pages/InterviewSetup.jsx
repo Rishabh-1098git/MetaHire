@@ -1,14 +1,58 @@
 import React, { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import {
+  Box,
+  TextField,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+  Button,
+  Chip,
+  OutlinedInput,
+  Typography,
+  Grid,
+} from "@mui/material";
+import { Upload } from "@mui/icons-material";
+import pdfToText from "react-pdftotext";
 
 const InterviewSetup = () => {
-  const [formData, setFormData] = useState({
-    role: "",
-    level: "",
-    experience: "",
-    technologies: [],
-    targetCompany: "",
+  const [uploadedResume, setUploadedResume] = useState("");
+  const [resumeText, setResumeText] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  function extractText(file) {
+    setLoading(true);
+    pdfToText(file)
+      .then((text) => {
+        setResumeText(text);
+        console.log(text);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Failed to extract text from pdf");
+        alert("Failed to extract text from PDF. Please try again.");
+        setLoading(false);
+      });
+  }
+
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    getValues,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      role: "",
+      level: "",
+      experience: "",
+      technologies: [],
+      targetCompany: "",
+      resume: "",
+    },
   });
 
   const navigate = useNavigate();
@@ -44,30 +88,43 @@ const InterviewSetup = () => {
     "Kubernetes",
   ];
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setUploadedResume(file.name);
+      setValue("resume", file);
+      const fileType = file.name.split(".").pop().toLowerCase();
+      if (fileType === "pdf") {
+        extractText(file);
+      } else {
+        alert("Unsupported file format. Please upload a PDF or Word document.");
+      }
+    }
   };
 
-  const handleMultiSelectChange = (e) => {
-    const selectedOptions = Array.from(e.target.selectedOptions).map(
-      (option) => option.value
-    );
-    setFormData({ ...formData, technologies: selectedOptions });
-  };
+  const onSubmit = async (data) => {
+    if (!resumeText) {
+      alert("Please upload and extract resume text before proceeding.");
+      return;
+    }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    setLoading(true);
 
     try {
       const prompt = `Generate 10 interview questions for the following details in the format of a single string separated by '|':
-  - Role: ${formData.role}
-  - Level: ${formData.level}
-  - Experience: ${formData.experience} years
-  - Technologies: ${formData.technologies.join(", ")}
-  - Target Company: ${formData.targetCompany}
+  - Role: ${data.role}
+  - Level: ${data.level}
+  - Experience: ${data.experience} years
+  - Technologies: ${data.technologies.join(", ")}
+  - Target Company: ${data.targetCompany}
+  - Resume Text: ${resumeText}  // Add extracted resume text
 
-Ensure the first 8 questions include a mix of behavioral and technical questions that are concise, relevant, and suitable for the specified role, level, and experience. The last 2 questions should be coding problems according to the level and experience with the following structure:
+Ensure the first 8 questions include a mix of behavioral, technical, and resume-related questions that are concise, relevant, and suitable for the specified role, level, and experience. For example, include questions like:
+- "Based on your resume, can you tell us about your experience with [specific technology or project]?"
+- "How did your experience with [specific skill/technology] contribute to the success of your previous projects?"
+- "Can you explain a challenging situation from your previous roles as described in your resume and how you overcame it?"
+
+The last 2 questions should be coding problems according to the level and experience with the following structure:
 
 1. Problem description: A concise explanation of the task.
 2. Input: Clearly defined input format.
@@ -78,134 +135,240 @@ Ensure the first 8 questions include a mix of behavioral and technical questions
 
 Return the output as a single string with each question separated by '|'.`;
 
-      const { data } = await axios.post("http://localhost:5000/api/gemini", {
-        prompt,
-      });
+      const { data: responseData } = await axios.post(
+        "http://localhost:5000/api/gemini",
+        { prompt }
+      );
 
-      const questions = data.questions;
+      const questions = responseData.questions;
 
       if (questions && questions.length > 0) {
-        navigate("/admin/interview-setup/interview", { state: { questions } }); // Navigate with questions
+        navigate("/admin/interview-setup/interview", { state: { questions } });
       } else {
         alert("No questions generated. Please try again.");
       }
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       console.error("Error fetching questions:", error);
       alert("Failed to fetch interview questions. Please try again.");
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-      <h1 className="text-4xl font-bold text-gray-800 mb-6">Interview Setup</h1>
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-lg shadow-lg w-96"
+    <Box
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      minHeight="100vh"
+      bgcolor="#f7f9fc"
+      px={3}
+    >
+      <Box
+        maxWidth={800}
+        width="100%"
+        bgcolor="white"
+        boxShadow={3}
+        borderRadius={2}
+        p={4}
       >
-        {/* Role Dropdown */}
-        <div className="mb-4">
-          <label className="block text-gray-600 mb-2">Role</label>
-          <select
-            name="role"
-            value={formData.role}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none"
-            required
-          >
-            <option value="">Select a role</option>
-            {roles.map((role) => (
-              <option key={role} value={role}>
-                {role}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Level Dropdown */}
-        <div className="mb-4">
-          <label className="block text-gray-600 mb-2">Level</label>
-          <select
-            name="level"
-            value={formData.level}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none"
-            required
-          >
-            <option value="">Select a level</option>
-            {levels.map((level) => (
-              <option key={level} value={level}>
-                {level}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Experience Input */}
-        <div className="mb-4">
-          <label className="block text-gray-600 mb-2">
-            Experience (in years)
-          </label>
-          <input
-            type="number"
-            name="experience"
-            value={formData.experience}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none"
-            required
-          />
-        </div>
-
-        {/* Technologies Multi-Select */}
-        <div className="mb-4">
-          <label className="block text-gray-600 mb-2">
-            Technologies/Skills
-          </label>
-          <select
-            name="technologies"
-            multiple
-            value={formData.technologies}
-            onChange={handleMultiSelectChange}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none"
-          >
-            {technologies.map((tech) => (
-              <option key={tech} value={tech}>
-                {tech}
-              </option>
-            ))}
-          </select>
-          <p className="text-sm text-gray-500 mt-1">
-            Hold Ctrl (Cmd on Mac) to select multiple options.
-          </p>
-        </div>
-
-        {/* Company Dropdown */}
-        <div className="mb-4">
-          <label className="block text-gray-600 mb-2">Target Company</label>
-          <select
-            name="targetCompany"
-            value={formData.targetCompany}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none"
-            required
-          >
-            <option value="">Select a company</option>
-            {companies.map((company) => (
-              <option key={company} value={company}>
-                {company}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+        <Typography
+          variant="h4"
+          textAlign="center"
+          fontWeight="bold"
+          gutterBottom
         >
-          Give Interview
-        </button>
-      </form>
-    </div>
+          🎯 Set Up Your Interview
+        </Typography>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Grid container spacing={3}>
+            {/* Role */}
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="role"
+                control={control}
+                rules={{ required: "Role is required" }}
+                render={({ field }) => (
+                  <FormControl fullWidth>
+                    <InputLabel id="role-label">Role</InputLabel>
+                    <Select
+                      {...field}
+                      labelId="role-label"
+                      label="Role"
+                      error={!!errors.role}
+                    >
+                      {roles.map((role) => (
+                        <MenuItem key={role} value={role}>
+                          {role}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+              />
+            </Grid>
+
+            {/* Level */}
+            <Grid item xs={12} sm={6}>
+              <Controller
+                name="level"
+                control={control}
+                rules={{ required: "Level is required" }}
+                render={({ field }) => (
+                  <FormControl fullWidth>
+                    <InputLabel id="level-label">Level</InputLabel>
+                    <Select
+                      {...field}
+                      labelId="level-label"
+                      label="Level"
+                      error={!!errors.level}
+                    >
+                      {levels.map((level) => (
+                        <MenuItem key={level} value={level}>
+                          {level}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+              />
+            </Grid>
+
+            {/* Experience */}
+            <Grid item xs={12}>
+              <Controller
+                name="experience"
+                control={control}
+                rules={{
+                  required: "Experience is required",
+                  min: { value: 0, message: "Experience must be at least 0" },
+                }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    fullWidth
+                    label="Experience (in years)"
+                    type="number"
+                    error={!!errors.experience}
+                    helperText={errors.experience?.message}
+                  />
+                )}
+              />
+            </Grid>
+
+            {/* Technologies */}
+            <Grid item xs={12}>
+              <Controller
+                name="technologies"
+                control={control}
+                render={({ field }) => (
+                  <FormControl fullWidth>
+                    <InputLabel id="technologies-label">
+                      Technologies
+                    </InputLabel>
+                    <Select
+                      {...field}
+                      labelId="technologies-label"
+                      multiple
+                      input={<OutlinedInput label="Technologies" />}
+                      renderValue={(selected) => (
+                        <Box display="flex" gap={1} flexWrap="wrap">
+                          {selected.map((value) => (
+                            <Chip key={value} label={value} />
+                          ))}
+                        </Box>
+                      )}
+                    >
+                      {technologies.map((tech) => (
+                        <MenuItem key={tech} value={tech}>
+                          {tech}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+              />
+            </Grid>
+
+            {/* Target Company */}
+            <Grid item xs={12}>
+              <Controller
+                name="targetCompany"
+                control={control}
+                rules={{ required: "Target company is required" }}
+                render={({ field }) => (
+                  <FormControl fullWidth>
+                    <InputLabel id="company-label">Target Company</InputLabel>
+                    <Select
+                      {...field}
+                      labelId="company-label"
+                      label="Target Company"
+                      error={!!errors.targetCompany}
+                    >
+                      {companies.map((company) => (
+                        <MenuItem key={company} value={company}>
+                          {company}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+              />
+            </Grid>
+
+            {/* Resume Upload */}
+            <Grid item xs={12}>
+              <div className="mb-4">
+                <label className="block text-gray-600 mb-2">
+                  Upload Resume
+                </label>
+                <Button
+                  variant="contained"
+                  component="label"
+                  fullWidth
+                  startIcon={<Upload />}
+                  style={{
+                    backgroundColor: "#4CAF50",
+                    color: "white",
+                  }}
+                >
+                  Upload Resume
+                  <input
+                    type="file"
+                    hidden
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleFileUpload}
+                  />
+                </Button>
+                {uploadedResume && (
+                  <Typography
+                    variant="body2"
+                    color="textSecondary"
+                    textAlign="center"
+                    mt={1}
+                  >
+                    {uploadedResume}
+                  </Typography>
+                )}
+              </div>
+            </Grid>
+
+            {/* Submit Button */}
+            <Grid item xs={12}>
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                color="primary"
+                disabled={loading}
+              >
+                {loading ? "Generating..." : "Generate Interview Questions"}
+              </Button>
+            </Grid>
+          </Grid>
+        </form>
+      </Box>
+    </Box>
   );
 };
 
