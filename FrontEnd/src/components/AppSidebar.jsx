@@ -29,12 +29,15 @@ import {
   History,
   LayoutDashboard,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export function AddSidebar() {
   const user = {
     name: "Rishabh Saini",
     email: "rishabhsaini1098@gmail.com",
   };
+
+  const navigate = useNavigate();
 
   const menuItems = [
     { title: "Profile", url: "/profile", icon: UserCircle },
@@ -103,8 +106,11 @@ export function AddSidebar() {
                   <Edit className="mr-2 size-4" />
                   Edit Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <LogOut className="mr-2 size-4" />
+                <DropdownMenuItem
+                  onClick={() => navigate("/")}
+                  className="cursor-pointer"
+                >
+                  <LogOut className="mr-2 size-4 curson-pointer" />
                   Logout
                 </DropdownMenuItem>
               </DropdownMenuGroup>

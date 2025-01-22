@@ -5,7 +5,7 @@ import ResumeImage from "../assets/Resume.png";
 import FeedbackImage from "../assets/Feedback.png";
 import MockInterviewImage from "../assets/MockInterview.png";
 import Header from "../components/Header";
-
+import { useNavigate } from "react-router-dom";
 import {
   Accordion,
   AccordionContent,
@@ -20,8 +20,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
+import { ArrowRight } from "lucide-react";
 export default function Home() {
+  const navigate = useNavigate();
   const shouldReduceMotion = useReducedMotion();
   const links = [
     { label: "Home", href: "/" },
@@ -54,8 +55,13 @@ export default function Home() {
           <p className="text-lg lg:text-2xl mb-6">
             Master your interviews with AI-powered tools and insights.
           </p>
-          <button className="bg-white text-blue-600 font-bold py-3 px-6 rounded-full shadow-lg hover:bg-blue-50 transition-all">
-            Get Started
+          <button
+            className="bg-black shadow-lg shadow-blue-900 text-blue-300 font-bold py-3 px-6 rounded-full  hover:shadow-blue-950 transition-all "
+            onClick={() => navigate("/signingsignup")}
+          >
+            <div className="flex items-center justify-center position-relative">
+              Get Started <ArrowRight size={24} className="ml-2" />
+            </div>
           </button>
         </motion.div>
       </section>

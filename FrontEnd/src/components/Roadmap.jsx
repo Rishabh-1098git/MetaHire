@@ -28,7 +28,7 @@ export default function Roadmap() {
           {/* Step 1 */}
           <VerticalTimelineElement
             className="vertical-timeline-element--work"
-            contentStyle={{ background: "white", color: "#000" }}
+            contentStyle={{ background: "#00BCD4", color: "#000" }}
             contentArrowStyle={{ borderRight: "7px solid white" }}
             iconStyle={{ background: "#00bcd4", color: "#fff" }}
             icon={<FaUserPlus />}
@@ -36,7 +36,7 @@ export default function Roadmap() {
             <h3 className="vertical-timeline-element-title text-xl font-bold">
               Step 1: Sign Up
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-200">
               Create your account to get started with the interview process.
             </p>
           </VerticalTimelineElement>
@@ -44,7 +44,7 @@ export default function Roadmap() {
           {/* Step 2 */}
           <VerticalTimelineElement
             className="vertical-timeline-element--work"
-            contentStyle={{ background: "white", color: "#000" }}
+            contentStyle={{ background: "#F7B52D", color: "#000" }}
             contentArrowStyle={{ borderRight: "7px solid white" }}
             iconStyle={{ background: "#f7b52d", color: "#fff" }}
             icon={<FaClipboardList />}
@@ -52,7 +52,7 @@ export default function Roadmap() {
             <h3 className="vertical-timeline-element-title text-xl font-bold">
               Step 2: Create Meeting
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-200">
               Schedule your interview session at a time that works best for you.
             </p>
           </VerticalTimelineElement>
@@ -60,7 +60,7 @@ export default function Roadmap() {
           {/* Step 3 */}
           <VerticalTimelineElement
             className="vertical-timeline-element--work"
-            contentStyle={{ background: "white", color: "#000" }}
+            contentStyle={{ background: "#FF6F6F", color: "#000" }}
             contentArrowStyle={{ borderRight: "7px solid white" }}
             iconStyle={{ background: "#ff6f6f", color: "#fff" }}
             icon={<FaVideo />}
@@ -68,7 +68,7 @@ export default function Roadmap() {
             <h3 className="vertical-timeline-element-title text-xl font-bold">
               Step 3: Attend Interview
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-200">
               Join the virtual interview with your recruiter or panel members.
             </p>
           </VerticalTimelineElement>
@@ -76,7 +76,7 @@ export default function Roadmap() {
           {/* Step 4 */}
           <VerticalTimelineElement
             className="vertical-timeline-element--work"
-            contentStyle={{ background: "white", color: "#000" }}
+            contentStyle={{ background: "#4CAF50", color: "#000" }}
             contentArrowStyle={{ borderRight: "7px solid white" }}
             iconStyle={{ background: "#4caf50", color: "#fff" }}
             icon={<FaChartLine />}
@@ -84,7 +84,7 @@ export default function Roadmap() {
             <h3 className="vertical-timeline-element-title text-xl font-bold">
               Step 4: Review Results
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-200">
               Get insights into your interview performance and next steps.
             </p>
           </VerticalTimelineElement>
@@ -92,7 +92,7 @@ export default function Roadmap() {
           {/* Step 5 */}
           <VerticalTimelineElement
             className="vertical-timeline-element--work"
-            contentStyle={{ background: "white", color: "#000" }}
+            contentStyle={{ background: "#7952B3", color: "#000" }}
             contentArrowStyle={{ borderRight: "7px solid white" }}
             iconStyle={{ background: "#7952b3", color: "#fff" }}
             icon={<FaComments />}
@@ -100,7 +100,7 @@ export default function Roadmap() {
             <h3 className="vertical-timeline-element-title text-xl font-bold">
               Step 5: Receive Feedback
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-200">
               Access detailed feedback to improve for future opportunities.
             </p>
           </VerticalTimelineElement>
