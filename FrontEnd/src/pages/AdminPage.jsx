@@ -11,10 +11,13 @@ import InterviewSetup from "./InterviewSetup";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AddSidebar } from "../components/AppSidebar";
 import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
-
+import PracticeInterview from "../components/PracticeInterview";
+import Profile from "../components/Profile";
+import InterviewHistory from "../components/InterviewHistory";
+import { ThreeDot } from "react-loading-indicators";
 const AdminPage = () => {
   const [openModal, setOpenModal] = useState(false);
-  const [activeComponent, setActiveComponent] = useState("createMeeting");
+  const [activeComponent, setActiveComponent] = useState("Practice Interview");
 
   const handleCreateMeeting = () => {
     setActiveComponent("createMeeting");
@@ -24,60 +27,71 @@ const AdminPage = () => {
     setOpenModal(false);
   };
 
-  const items = [
-    {
-      title: "Home",
-      icon: Home,
-      onClick: () => setActiveComponent("home"),
-    },
-    {
-      title: "Inbox",
-      icon: Inbox,
-      onClick: () => setActiveComponent("inbox"),
-    },
-    {
-      title: "Calendar",
-      icon: Calendar,
-      onClick: () => setActiveComponent("calendar"),
-    },
-    {
-      title: "Search",
-      icon: Search,
-      onClick: () => setActiveComponent("search"),
-    },
-    {
-      title: "Settings",
-      icon: Settings,
-      onClick: () => setActiveComponent("settings"),
-    },
-  ];
-
   const renderContent = () => {
     switch (activeComponent) {
-      case "createMeeting":
+      case "Practice Interview":
         return (
           <div className="flex flex-col items-center justify-center h-full">
-            <h2 className="text-2xl font-semibold mb-4">Create Meeting</h2>
-            <button
-              onClick={() => setOpenModal(true)}
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-            >
-              Open Modal
-            </button>
+            <PracticeInterview />
           </div>
         );
-      case "home":
-        return <h2 className="text-xl">Home Component</h2>;
-      case "inbox":
-        return <h2 className="text-xl">Inbox Component</h2>;
-      case "calendar":
-        return <h2 className="text-xl">Calendar Component</h2>;
-      case "search":
-        return <h2 className="text-xl">Search Component</h2>;
-      case "settings":
-        return <h2 className="text-xl">Settings Component</h2>;
-      default:
-        return <h2>Select a Menu Item</h2>;
+      case "Profile":
+        return (
+          <div className="flex flex-col items-center justify-center h-full">
+            <Profile />
+          </div>
+        );
+      case "Interview History":
+        return (
+          <div className="flex flex-col items-center justify-center h-full">
+            <InterviewHistory />
+          </div>
+        );
+      case "Perfomance Analysis":
+        return (
+          <div className="flex flex-col items-center justify-center h-full">
+            <div className="mb-10 font-mainFont text-lg">Coming soon ...</div>
+            <div>
+              <ThreeDot
+                variant="bounce"
+                color="blue"
+                size="medium"
+                text=""
+                textColor=""
+              />
+            </div>
+          </div>
+        );
+      case "Recommended Courses":
+        return (
+          <div className="flex flex-col items-center justify-center h-full">
+            <div className="mb-10 font-mainFont text-lg">Coming soon ...</div>
+            <div>
+              <ThreeDot
+                variant="bounce"
+                color="blue"
+                size="medium"
+                text=""
+                textColor=""
+              />
+            </div>
+          </div>
+        );
+      case "Community":
+        return (
+          <div className="flex flex-col items-center justify-center h-full">
+            <div className="mb-10 font-mainFont text-lg">Coming soon ...</div>
+            <div>
+              <ThreeDot
+                variant="bounce"
+                color="blue"
+                size="medium"
+                text=""
+                textColor=""
+              />
+            </div>
+          </div>
+        );
     }
   };
 
@@ -88,11 +102,13 @@ const AdminPage = () => {
         {/* Fixed width sidebar */}
         <div className="w-64 flex-shrink-0 bg-gray-800 text-white">
           <SidebarTrigger />
-          <AddSidebar items={items} />
+          <AddSidebar setActiveComponent={setActiveComponent} />
         </div>
 
         {/* Flexible main content area */}
-        <div className="flex-1  p-8 overflow-auto">{renderContent()}</div>
+        <div className="flex-1  p-8 overflow-auto bg-black">
+          {renderContent()}
+        </div>
 
         {/* Modal */}
         <Dialog

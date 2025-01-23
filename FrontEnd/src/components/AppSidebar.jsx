@@ -28,10 +28,13 @@ import {
   Video,
   History,
   LayoutDashboard,
+  MessageCircleMore,
+  SquarePi,
+  Anvil,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-export function AddSidebar() {
+import { Separator } from "./ui/separator";
+export function AddSidebar({ setActiveComponent }) {
   const user = {
     name: "Rishabh Saini",
     email: "rishabhsaini1098@gmail.com",
@@ -40,9 +43,12 @@ export function AddSidebar() {
   const navigate = useNavigate();
 
   const menuItems = [
-    { title: "Profile", url: "/profile", icon: UserCircle },
-    { title: "Practice Interview", url: "/practice-interview", icon: Video },
-    { title: "Interview History", url: "/interview-history", icon: History },
+    { title: "Profile", icon: UserCircle },
+    { title: "Practice Interview", icon: Video },
+    { title: "Interview History", icon: History },
+    { title: "Perfomance Analysis", icon: Anvil },
+    { title: "Recommended Courses", icon: SquarePi },
+    { title: "Community", icon: MessageCircleMore },
   ];
 
   return (
@@ -54,12 +60,16 @@ export function AddSidebar() {
             <LayoutDashboard className="size-5" />
             Dashboard
           </SidebarGroupLabel>
-          <SidebarGroupContent>
+          <Separator />
+          <SidebarGroupContent className="mt-8">
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url} className="flex items-center gap-2">
+                    <a
+                      className="flex items-center gap-2"
+                      onClick={() => setActiveComponent(item.title)}
+                    >
                       <item.icon className="size-4" />
                       <span>{item.title}</span>
                     </a>

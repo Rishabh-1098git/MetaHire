@@ -56,7 +56,7 @@ export default function Home() {
             Master your interviews with AI-powered tools and insights.
           </p>
           <button
-            className="bg-black shadow-lg shadow-blue-900 text-blue-300 font-bold py-3 px-6 rounded-full  hover:shadow-blue-950 transition-all "
+            className="bg-black shadow-lg shadow-blue-900 text-blue-300 font-bold py-3 px-6 rounded-full  hover:shadow-blue-950 transition-all bg-opacity-60"
             onClick={() => navigate("/signingsignup")}
           >
             <div className="flex items-center justify-center position-relative">

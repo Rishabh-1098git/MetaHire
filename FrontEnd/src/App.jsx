@@ -29,8 +29,14 @@ const App = () => {
                 <Route path="/" element={<Home />} />
                 <Route path="/signingsignup" element={<AuthPage />} />
                 <Route path="/admin" element={<AdminPage />} />
-                <Route path="/interview" element={<Interview />} />
-                <Route path="/feedback" element={<Feedback />} />
+                <Route
+                  path="admin/interview/:interviewId"
+                  element={<Interview />}
+                />
+                <Route
+                  path="admin/interview/:interviewId/results"
+                  element={<Feedback />}
+                />
               </Routes>
             </Suspense>
           </Router>

@@ -43,7 +43,10 @@ export default function Header({ user }) {
               {/* Home Link */}
               <NavigationMenuItem>
                 <NavigationMenuLink
-                  className={navigationMenuTriggerStyle() + " cursor-pointer"}
+                  className={
+                    navigationMenuTriggerStyle() +
+                    " cursor-pointer bg-black bg-opacity-50"
+                  }
                   onClick={() => navigate("/")}
                 >
                   Home
@@ -52,7 +55,9 @@ export default function Header({ user }) {
 
               {/* About Us Dropdown */}
               <NavigationMenuItem>
-                <NavigationMenuTrigger>About Us</NavigationMenuTrigger>
+                <NavigationMenuTrigger className="bg-black bg-opacity-50">
+                  About Us
+                </NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <ul className="grid gap-3 p-4 md:w-[300px]">
                     <li>
@@ -81,7 +86,9 @@ export default function Header({ user }) {
 
               {/* Contact Us Dropdown */}
               <NavigationMenuItem>
-                <NavigationMenuTrigger>Contact Us</NavigationMenuTrigger>
+                <NavigationMenuTrigger className="bg-black bg-opacity-50">
+                  Contact Us
+                </NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <ul className="grid gap-3 p-4 md:w-[300px]">
                     <li>
@@ -108,7 +115,10 @@ export default function Header({ user }) {
 
               <NavigationMenuItem>
                 <NavigationMenuLink
-                  className={navigationMenuTriggerStyle() + " cursor-pointer"}
+                  className={
+                    navigationMenuTriggerStyle() +
+                    " cursor-pointer bg-black bg-opacity-50"
+                  }
                   onClick={() => navigate("/")}
                 >
                   Github
