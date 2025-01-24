@@ -155,7 +155,12 @@ Return the output as a single string with each question separated by '|'.`;
       if (questions && questions.length > 0) {
         const interviewId = Math.random().toString(36).substring(2, 10);
         navigate(`/admin/interview/${interviewId}`, {
-          state: { questions, interviewId },
+          state: {
+            questions,
+            interviewId,
+            title: data.role,
+            role: data.targetCompany,
+          },
         });
       } else {
         alert("No questions generated. Please try again.");

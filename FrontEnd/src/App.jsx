@@ -6,10 +6,10 @@ const Home = lazy(() => import("./pages/Home"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const Interview = lazy(() => import("./pages/Interview"));
-const Feedback = lazy(() => import("./pages/Feedback"));
+import Feedback from "./pages/Feedback";
 import { Toaster } from "sonner";
-
 import "./App.css";
+import Feedback2 from "./pages/Feedback2";
 
 const App = () => {
   return (
@@ -35,8 +35,9 @@ const App = () => {
                 />
                 <Route
                   path="admin/interview/:interviewId/results"
-                  element={<Feedback />}
+                  element={<Feedback2 />}
                 />
+                <Route path="/feedback" element={<Feedback2 />} />
               </Routes>
             </Suspense>
           </Router>

@@ -7,11 +7,22 @@ import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
 import { useNavigate } from "react-router-dom";
-
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 const MyInterviewPage = () => {
   const location = useLocation();
   const questions = location.state?.questions || [];
   const interviewId = location.state?.interviewId;
+  const title = location.state?.title;
+  const role = location.state?.role;
 
   const navigate = useNavigate();
 
@@ -20,7 +31,7 @@ const MyInterviewPage = () => {
   const [isTimerRunning, setIsTimerRunning] = useState(true);
   const [answers, setAnswers] = useState(Array(questions.length).fill(""));
   const [codeSolutions, setCodeSolutions] = useState(
-    Array(questions.length).fill("// Write your solution here...")
+    Array(questions.length).fill("")
   );
   const [output, setOutput] = useState("");
 
@@ -98,7 +109,6 @@ const MyInterviewPage = () => {
       resetTranscript();
       resetTimer();
     } else {
-      alert("Interview finished! Great job!");
       setIsTimerRunning(false);
       answers[9] = codeSolutions[9];
       console.log("Answers:", answers);
@@ -154,7 +164,9 @@ const MyInterviewPage = () => {
   };
 
   const resetTimer = () => {
-    setTimeLeft(120);
+    const newTimeLeft =
+      currentQuestionIndex >= questions.length - 3 ? 600 : 120; // 10 minutes for last 2 questions, 2 minutes otherwise
+    setTimeLeft(newTimeLeft);
     setIsTimerRunning(true);
   };
 
@@ -191,57 +203,76 @@ const MyInterviewPage = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-800 text-white">
+    <div className="flex flex-col h-screen bg-[#121212] text-[#E0E0E0]">
       {/* Upper Section: Video and Interview Description */}
-      <div className="flex items-center justify-between px-8 py-6 bg-[#212121]">
-        <div className="w-56 h-32   overflow-hidden shadow-xl rounded-md">
+      <div className="flex items-center justify-between px-8 py-6 bg-[#1E1E1E] border-b border-[#2C2C2C]">
+        <div className="w-56 h-32 overflow-hidden shadow-xl rounded-md">
           <video
             ref={videoRef}
             autoPlay
             muted
-            className="w-56 h-32 object-cover"
+            className="w-56 h-32 object-cover border-slate-200  border-2"
           />
         </div>
-        <div className="ml-6 text-center text-gray-300">
-          <h2 className="text-2xl font-semibold font-mono text-slate-200 mb-2">
-            Interview in Progress
+        <div className="ml-6 text-center">
+          <h2 className="text-2xl font-semibold text-[#FFFFFF] mb-2">
+            {title + " Interview"}
           </h2>
-          <p className="text-lg font-mono">
-            Answer the questions with your best abilities. Good luck!
-          </p>
+          <p className="text-lg text-[#B0B0B0]">{role}</p>
         </div>
-        <div className="text-2xl font-semibold font-mono text-white">
+        <div className="text-2xl font-semibold">
           Time Left:{" "}
-          <span className="text-red-500">{formatTime(timeLeft)}</span>
+          <span className="text-[#00B4D8]">{formatTime(timeLeft)}</span>
         </div>
       </div>
 
       {/* Lower Section: Question and Answer / Code Editor */}
       <div className="flex h-full">
         {/* Question Section */}
-        <div className="flex flex-col justify-between items-center w-1/2 px-8 py-6 bg-white overflow-y-auto">
-          <p className="text-2xl font-bold text-black text-center">
+        <div className="flex flex-col justify-between items-center w-1/2 px-8 py-6 bg-[#121212] overflow-y-auto border-r border-[#2C2C2C]">
+          <p className="text-2xl font-bold  text-center text-[#00B4D8]">
             Question {currentQuestionIndex + 1}
           </p>
-          <p className="text-xl mt-4 text-black font-mono text-center bg-[#E0E0E0] shadow-xl h-96 p-10">
+          <p className="text-xl mt-4 text-slate-200  bg-[#2C2C2C] h-96 p-10 rounded-xl shadow-2xl">
             {currentQuestion}
           </p>
 
-          {/* Fixed Next Question Button */}
-          <div className="mt-auto ">
-            <button
-              onClick={moveToNextQuestion}
-              className="py-2 px-8 mt-4 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-opacity-50 transition duration-300 ease-in-out"
-            >
-              {currentQuestionIndex == questions.length - 1
-                ? "Finish Interview"
-                : "Next Question"}
-            </button>
+          <div className="mt-auto">
+            {currentQuestionIndex != questions.length - 1 ? (
+              <button
+                onClick={moveToNextQuestion}
+                className="py-2 px-8 mt-4 bg-[#00B4D8] hover:bg-[#0096B7] text-white font-semibold rounded-lg transition duration-300"
+              >
+                Next Question
+              </button>
+            ) : (
+              <Dialog>
+                <DialogTrigger>
+                  <Button>Finish Interview</Button>
+                </DialogTrigger>
+                <DialogContent className="bg-black">
+                  <DialogHeader>
+                    <DialogTitle>
+                      You want tho finish the Interview ? This action can't be
+                      revert.
+                    </DialogTitle>
+                    <DialogDescription>
+                      <Button
+                        onClick={moveToNextQuestion}
+                        className="mt-6 w-32"
+                      >
+                        Finish
+                      </Button>
+                    </DialogDescription>
+                  </DialogHeader>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
         </div>
 
         {/* Answer or Code Editor Section */}
-        <div className="w-1/2 bg-[#424242] p-8 flex flex-col justify-between">
+        <div className="w-1/2 bg-[#121212] p-8 flex flex-col justify-between">
           {currentQuestionIndex >= questions.length - 2 ? (
             <div>
               <CodeMirror
@@ -250,25 +281,25 @@ const MyInterviewPage = () => {
                 extensions={[javascript()]}
                 theme={oneDark}
                 onChange={(value) => saveCodeSolution(value)}
-                className="rounded-lg border border-gray-700 text-xl"
+                className="rounded-lg border border-[#2C2C2C]"
               />
               <button
                 onClick={runCode}
-                className="py-2 px-6 mt-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition duration-200 ease-in-out"
+                className="py-2 px-6 mt-4 bg-[#28C242] hover:bg-[#45A049] text-white font-medium rounded-lg transition duration-200"
               >
                 Run Code
               </button>
-              <div className="mt-4 bg-[#212121] p-4 rounded-lg text-gray-200 border border-gray-700">
-                <p className="font-semibold text-lg">Output:</p>
+              <div className="mt-4 bg-[#1E1E1E] p-4 rounded-lg text-[#B0B0B0] border border-[#2C2C2C]">
+                <p className="font-semibold text-lg text-[#FFFFFF]">Output:</p>
                 <pre className="mt-2 whitespace-pre-wrap">{output}</pre>
               </div>
             </div>
           ) : (
             <div className="mb-6">
-              <p className="text-lg font-semibold text-white mb-3">
+              <p className="text-xl font-semibold text-[#28C242] mb-3">
                 Your Answer:
               </p>
-              <div className="bg-[#212121] text-gray-200 font-mono text-xl p-4 rounded-lg h-96 overflow-y-auto ">
+              <div className="bg-[#2C2C2C] text-slate-300 font-mono text-xl p-4 rounded-lg h-96 overflow-y-auto border border-[#2C2C2C]">
                 {transcript || "Start speaking your answer..."}
               </div>
             </div>

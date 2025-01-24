@@ -9,53 +9,31 @@ import {
   Alert,
   Button,
   Divider,
-  Tooltip,
-  Fab,
 } from "@mui/material";
-import { Add, Error } from "@mui/icons-material";
+import { Separator } from "../components/ui/separator";
+import { Error } from "@mui/icons-material";
 import { styled } from "@mui/system";
-import { Carousel } from "react-responsive-carousel"; // For the slider effect
-import "react-responsive-carousel/lib/styles/carousel.min.css"; // Carousel styles
+import { Carousel } from "react-responsive-carousel";
+import "react-responsive-carousel/lib/styles/carousel.min.css";
 
-// Styled components with custom font-family
+// Styled components
 const FeedbackHeading = styled(Typography)({
-  fontFamily: "'Poppins', sans-serif",
-  fontWeight: "600",
-  color: "#3f51b5",
-  fontSize: "2rem",
+  color: "#e0e0e0",
+  fontWeight: "bold",
+  textAlign: "center",
+  marginBottom: 20,
+  fontSize: "2.5rem",
 });
 
-const FeedbackText = styled(Typography)({
-  fontFamily: "'Poppins', sans-serif",
-  color: "#212121",
-  fontSize: "1rem",
-});
-
-const ThankYouText = styled(Typography)({
-  fontFamily: "'Poppins', sans-serif",
-  color: "gray",
-  fontSize: "1.3rem",
-  fontWeight: "600",
-  marginBottom: "20px",
-});
-
-// Define a CSS keyframe for blinking text
 const BlinkingText = styled(Typography)({
-  fontFamily: "'Poppins', sans-serif",
   fontSize: "1.2rem",
-  color: "gray",
+  color: "#9ca3af",
   fontWeight: "600",
-  animation: "blinkingText 1.5s infinite step-start", // Animation added
+  animation: "blinkingText 1.5s infinite step-start",
   "@keyframes blinkingText": {
-    "0%": {
-      opacity: 1,
-    },
-    "50%": {
-      opacity: 0,
-    },
-    "100%": {
-      opacity: 1,
-    },
+    "0%": { opacity: 1 },
+    "50%": { opacity: 0 },
+    "100%": { opacity: 1 },
   },
 });
 
@@ -69,7 +47,7 @@ function Feedback() {
   const [totalScore, setTotalScore] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [activeStep, setActiveStep] = useState(0); // To track slider step
+  const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
     const fetchFeedback = async () => {
@@ -121,13 +99,19 @@ function Feedback() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ paddingTop: 4, paddingBottom: 4 }}>
-      {/* Feedback Heading */}
+    <Container
+      maxWidth="full"
+      sx={{
+        paddingTop: 4,
+        paddingBottom: 4,
+        backgroundColor: "black",
+        minHeight: "100vh",
+      }}
+    >
       <FeedbackHeading variant="h4" gutterBottom>
-        Thank you for completing your interview!
+        Interview Performance Insights
       </FeedbackHeading>
-
-      {/* Loading Spinner */}
+      <Separator />
       {loading && (
         <Box
           sx={{
@@ -136,99 +120,207 @@ function Feedback() {
             alignItems: "center",
             height: "60vh",
             flexDirection: "column",
+            backgroundColor: "black",
+            borderRadius: 2,
           }}
         >
-          <CircularProgress size={60} sx={{ marginBottom: 2 }} />
-          {/* Apply blinking effect on the loader text */}
-          <BlinkingText variant="h6">Generating your feedback...</BlinkingText>
+          <CircularProgress
+            size={60}
+            sx={{
+              marginBottom: 2,
+              color: "#9ca3af",
+            }}
+          />
+          <BlinkingText variant="h6">
+            Analyzing your performance...
+          </BlinkingText>
         </Box>
       )}
 
-      {/* Error Message */}
       {error && (
-        <Alert severity="error" icon={<Error />} sx={{ marginBottom: 3 }}>
+        <Alert
+          severity="error"
+          icon={<Error />}
+          sx={{
+            marginBottom: 3,
+            backgroundColor: "#282828",
+            color: "#f8fafc",
+          }}
+        >
           {error}
         </Alert>
       )}
 
-      {/* Feedback Section */}
       {!loading && feedback.length > 0 && (
         <>
-          <ThankYouText>Here's a summary of your performance:</ThankYouText>
-
-          {/* Score Section */}
-          <Box sx={{ marginBottom: 4, textAlign: "center" }}>
-            <ThankYouText>Overall Score:</ThankYouText>
-            <Typography variant="h5" color="primary" fontWeight="bold">
-              {totalScore} / 100
+          <Box
+            sx={{
+              marginBottom: 4,
+              textAlign: "center",
+              backgroundColor: "black",
+              padding: 3,
+              borderRadius: 2,
+            }}
+          >
+            <Typography
+              variant="h5"
+              sx={{
+                color: "#28C244",
+                fontWeight: "bold",
+              }}
+            >
+              Overall Score: {totalScore} / 100
             </Typography>
-            <Divider sx={{ marginY: 2 }} />
           </Box>
 
-          {/* Feedback Carousel */}
           <Carousel
             selectedItem={activeStep}
             onChange={setActiveStep}
             showArrows={false}
             showThumbs={false}
             showStatus={false}
+            showIndicators={false}
             infiniteLoop
           >
             {feedback.map((item, index) => (
-              <div
+              <Box
                 key={index}
-                className="bg-slate-200 shadow-lg rounded-lg p-6 my-4 font-mono"
+                sx={{
+                  backgroundColor: "black",
+                  boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                  borderRadius: 2,
+                  padding: 3,
+                  margin: "14px 0",
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" }, // Stack on small screens, side-by-side otherwise
+                  gap: 4,
+                }}
               >
-                <div className="flex flex-col space-y-4">
-                  {/* Question Text */}
-                  <p className="text-lg text-gray-900 font-medium">
-                    <strong>Question {index + 1}: </strong> {item.question}
-                  </p>
+                {/* Left Side: User's Answer */}
+                <Box
+                  sx={{
+                    flex: 1,
+                    backgroundColor: "#1e293b",
+                    borderRadius: 2,
+                    padding: 3,
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontSize: "1.3rem",
+                      color: "white",
+                      fontWeight: 500,
+                      marginBottom: 2,
+                    }}
+                  >
+                    Question {index + 1}: {item.question}
+                  </Typography>
+                  <Separator />
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontSize: "1.3rem",
+                      color: "white",
+                      marginTop: 2,
+                    }}
+                  >
+                    Your Answer:
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: "1.2rem",
+                      color: "#9ca3af",
+                      marginTop: 1,
+                      fontWeight: 400,
+                    }}
+                  >
+                    {item.answer}
+                  </Typography>
+                </Box>
 
-                  {/* Answer Text */}
-                  <p className="text-lg text-gray-900 font-medium">
-                    <strong>Your Answer:</strong> {item.answer}
-                  </p>
-
-                  {/* Score */}
-                  <p className="text-xl text-green-800 font-semibold">
-                    <strong>Score:</strong> {item.score} / 10
-                  </p>
-
-                  {/* Feedback Text */}
-                  <p className="text-lg text-slate-800 font-medium">
-                    <strong>Feedback:</strong> {item.feedback}
-                  </p>
-                </div>
-              </div>
+                {/* Right Side: Feedback */}
+                <Box
+                  sx={{
+                    flex: 1,
+                    backgroundColor: "#0f172a",
+                    borderRadius: 2,
+                    padding: 3,
+                  }}
+                >
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontSize: "1.3rem",
+                      color: "#FFA116",
+                      marginBottom: 2,
+                    }}
+                  >
+                    Feedback:
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: "1.2rem",
+                      color: "#e0e0e0",
+                      fontWeight: 400,
+                    }}
+                  >
+                    {item.feedback}
+                  </Typography>
+                </Box>
+              </Box>
             ))}
           </Carousel>
 
-          {/* Navigation Buttons */}
-          <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              mt: 4,
+              gap: 2,
+            }}
+          >
             <Button
               variant="outlined"
               onClick={handleBack}
               disabled={activeStep === 0}
+              sx={{
+                borderColor: "#64748b",
+                color: "#64748b",
+                "&:hover": {
+                  backgroundColor: "#475569",
+                },
+                "&.Mui-disabled": {
+                  borderColor: "#334155",
+                  color: "#334155",
+                },
+              }}
             >
               Back
             </Button>
             {activeStep === feedback.length - 1 ? (
-              <Box sx={{ textAlign: "center" }}>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  onClick={handleFinish}
-                >
-                  Finish and Save Feedback
-                </Button>
-              </Box>
+              <Button
+                variant="contained"
+                onClick={handleFinish}
+                sx={{
+                  backgroundColor: "#64748b",
+                  "&:hover": {
+                    backgroundColor: "#475569",
+                  },
+                }}
+              >
+                Finish and Save Feedback
+              </Button>
             ) : (
               <Button
                 variant="contained"
-                color="primary"
                 onClick={handleNext}
-                disabled={activeStep === feedback.length - 1}
+                sx={{
+                  backgroundColor: "#64748b",
+                  "&:hover": {
+                    backgroundColor: "#475569",
+                  },
+                }}
               >
                 Next
               </Button>
@@ -237,9 +329,15 @@ function Feedback() {
         </>
       )}
 
-      {/* No Feedback Available Message */}
       {!loading && feedback.length === 0 && !error && (
-        <Alert severity="info" sx={{ marginTop: 4 }}>
+        <Alert
+          severity="info"
+          sx={{
+            marginTop: 4,
+            backgroundColor: "#475569",
+            color: "#e0e0e0",
+          }}
+        >
           No feedback available. Please provide valid questions and answers.
         </Alert>
       )}
