@@ -2,15 +2,15 @@ import React, { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./components/theme-provider";
 import { Atom } from "react-loading-indicators";
+import ProtectedRoute from "./components/ProtectedRoute ";
+import { Toaster } from "sonner";
+
 const Home = lazy(() => import("./pages/Home"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const Interview = lazy(() => import("./pages/Interview"));
-import Feedback from "./pages/Feedback";
-import { Toaster } from "sonner";
-import "./App.css";
 import Feedback2 from "./pages/Feedback2";
-
+import "./App.css";
 const App = () => {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
@@ -28,16 +28,31 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/signingsignup" element={<AuthPage />} />
-                <Route path="/admin" element={<AdminPage />} />
+                {/* Protect these routes */}
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute>
+                      <AdminPage />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="admin/interview/:interviewId"
-                  element={<Interview />}
+                  element={
+                    <ProtectedRoute>
+                      <Interview />
+                    </ProtectedRoute>
+                  }
                 />
                 <Route
                   path="admin/interview/:interviewId/results"
-                  element={<Feedback2 />}
+                  element={
+                    <ProtectedRoute>
+                      <Feedback2 />
+                    </ProtectedRoute>
+                  }
                 />
-                <Route path="/feedback" element={<Feedback2 />} />
               </Routes>
             </Suspense>
           </Router>

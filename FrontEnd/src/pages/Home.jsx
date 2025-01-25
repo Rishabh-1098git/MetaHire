@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import Roadmap from "../components/RoadMap";
 import ResumeImage from "../assets/Resume.png";
@@ -32,6 +32,13 @@ export default function Home() {
     },
     { label: "Contact", href: "/contact" },
   ];
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/admin");
+    }
+  }, [navigate]);
 
   return (
     <div className=" text-gray-800 font-mainFont">

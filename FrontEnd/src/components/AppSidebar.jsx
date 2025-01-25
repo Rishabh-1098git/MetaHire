@@ -51,6 +51,11 @@ export function AddSidebar({ setActiveComponent }) {
     { title: "Community", icon: MessageCircleMore },
   ];
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/");
+  };
+
   return (
     <Sidebar className="font-mainFont">
       <SidebarContent className="flex flex-col h-full">
@@ -117,7 +122,7 @@ export function AddSidebar({ setActiveComponent }) {
                   Edit Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => navigate("/")}
+                  onClick={handleLogout}
                   className="cursor-pointer"
                 >
                   <LogOut className="mr-2 size-4 curson-pointer" />

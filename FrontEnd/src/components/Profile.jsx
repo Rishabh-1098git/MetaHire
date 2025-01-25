@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,32 +14,66 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Pencil, Upload, FileText } from "lucide-react";
 import { Separator } from "./ui/separator";
+
 const Profile = () => {
-  const [profile, setProfile] = useState({
-    name: "Rishabh Saini",
-    email: "rishabhsaini1098@gmail.com",
-    bio: "Full-Stack Web Developer | React, Node.js, Firebase, MongoDB | JavaScript, Python, Java and DSA | Dedicated to Building High-Impact, Scalable Solution",
-    skills: ["React", "TypeScript", "Node.js", "GraphQL"],
-    resumeFileName: "jane_doe_resume.pdf",
-  });
-
+  const [userData, setUserData] = useState(null); // Store actual user data
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editedProfile, setEditedProfile] = useState({ ...profile });
+  const [editedProfile, setEditedProfile] = useState({});
 
-  const handleUpdateProfile = () => {
-    setProfile(editedProfile);
-    setIsEditModalOpen(false);
-  };
+  // Fetch profile data
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const { data } = await axios.get(
+          "http://localhost:5000/api/auth/profile",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setUserData(data);
+        setEditedProfile(data); // Initialize form with user data
+      } catch (error) {
+        setError("Error fetching profile data.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleResumeUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setEditedProfile((prev) => ({
-        ...prev,
-        resumeFileName: file.name,
+    fetchProfileData();
+  }, []);
+
+  // Handle profile update
+  const handleSaveChanges = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put("http://localhost:5000/api/auth/profile", editedProfile, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log("Profile updated successfully!");
+
+      // Directly update userData state with the new data without needing to refetch
+      setUserData((prevUserData) => ({
+        ...prevUserData,
+        ...editedProfile, // Update only the changed fields
       }));
+
+      setIsEditModalOpen(false); // Close the modal after saving changes
+    } catch (error) {
+      console.error("Error saving profile data:", error);
+      setError("Error saving profile data.");
     }
   };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
     <Card className="w-full h-full mx-auto bg-black font-mainFont">
@@ -60,23 +95,23 @@ const Profile = () => {
           <Separator />
           <div className="flex items-center space-x-4">
             <div className="w-44 h-44 bg-gray-800 rounded-full flex items-center justify-center text-white text-3xl mr-10">
-              {profile.name[0]}
+              {userData?.name[0]}
             </div>
             <div>
-              <h2 className="text-xl font-bold">{profile.name}</h2>
-              <p className="text-muted-foreground">{profile.email}</p>
+              <h2 className="text-xl font-bold">{userData?.name}</h2>
+              <p className="text-muted-foreground">{userData?.email}</p>
             </div>
           </div>
           <Separator />
           <div className="space-y-2">
             <h3 className="font-semibold text-xl">Bio</h3>
-            <p>{profile.bio}</p>
+            <p>{userData?.bio}</p>
           </div>
           <Separator />
           <div className="space-y-2">
             <h3 className="font-semibold text-xl">Skills</h3>
             <div className="flex flex-wrap gap-2">
-              {profile.skills.map((skill) => (
+              {userData?.skills?.map((skill) => (
                 <span
                   key={skill}
                   className="bg-black text-secondary-foreground px-2 py-1 rounded-md text-sm"
@@ -95,10 +130,10 @@ const Profile = () => {
               <FileText className="mr-2 h-5 w-5" /> Resume
             </h3>
             <Separator />
-            {profile.resumeFileName ? (
+            {userData?.resumeFileName ? (
               <div className="bg-black p-4 rounded-md flex items-center justify-between">
                 <span className="text-secondary-foreground">
-                  {profile.resumeFileName}
+                  {userData?.resumeFileName}
                 </span>
                 <Button size="sm">View</Button>
               </div>
@@ -107,7 +142,7 @@ const Profile = () => {
                 <Input
                   type="file"
                   accept=".pdf"
-                  onChange={handleResumeUpload}
+                  onChange={() => console.log("Uploading resume...")}
                   className="hidden"
                   id="resume-upload"
                 />
@@ -195,30 +230,8 @@ const Profile = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>Resume</Label>
-              <div className="flex items-center space-x-2">
-                <Input
-                  type="file"
-                  accept=".pdf"
-                  onChange={handleResumeUpload}
-                  className="hidden"
-                  id="resume-upload"
-                />
-                <Label
-                  htmlFor="resume-upload"
-                  className="flex items-center cursor-pointer bg-secondary text-secondary-foreground hover:bg-secondary/80 p-2 rounded-md"
-                >
-                  <Upload className="mr-2" /> Upload PDF
-                </Label>
-                <span className="text-sm text-muted-foreground">
-                  {editedProfile.resumeFileName}
-                </span>
-              </div>
+              <Button onClick={handleSaveChanges}>Save Changes</Button>
             </div>
-
-            <Button onClick={handleUpdateProfile} className="w-full">
-              Save Changes
-            </Button>
           </div>
         </DialogContent>
       </Dialog>
