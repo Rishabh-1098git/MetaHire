@@ -12,15 +12,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Pencil, Upload, FileText } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { Separator } from "./ui/separator";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
-  const [userData, setUserData] = useState(null); // Store actual user data
+  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editedProfile, setEditedProfile] = useState({});
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [editedProfile, setEditedProfile] = useState(null);
+  const [profileImage, setProfileImage] = useState(null);
+  const navigate = useNavigate();
 
   // Fetch profile data
   useEffect(() => {
@@ -30,15 +34,14 @@ const Profile = () => {
         const { data } = await axios.get(
           "http://localhost:5000/api/auth/profile",
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
         setUserData(data);
+        console.log("User data 11:", data);
         setEditedProfile(data); // Initialize form with user data
       } catch (error) {
-        setError("Error fetching profile data.");
+        navigate("/signingsignup");
       } finally {
         setLoading(false);
       }
@@ -47,28 +50,82 @@ const Profile = () => {
     fetchProfileData();
   }, []);
 
-  // Handle profile update
-  const handleSaveChanges = async () => {
+  const handleSaveChanges = async (updatedProfile) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.put("http://localhost:5000/api/auth/profile", editedProfile, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.put(
+        "http://localhost:5000/api/auth/profile",
+        updatedProfile,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-      console.log("Profile updated successfully!");
+      console.log("Backend response on profile update:", response.data);
+      console.log("Updated profile sent:", updatedProfile);
 
-      // Directly update userData state with the new data without needing to refetch
       setUserData((prevUserData) => ({
         ...prevUserData,
-        ...editedProfile, // Update only the changed fields
+        ...updatedProfile,
       }));
 
-      setIsEditModalOpen(false); // Close the modal after saving changes
+      setIsEditModalOpen(false);
     } catch (error) {
-      console.error("Error saving profile data:", error);
+      console.error(
+        "Error saving profile data:",
+        error.response ? error.response.data : error
+      );
       setError("Error saving profile data.");
+    }
+  };
+  const handlePhotoUpload = async () => {
+    if (!profileImage) return;
+
+    const formData = new FormData();
+    formData.append("photo", profileImage);
+
+    try {
+      const { data } = await axios.post(
+        "http://localhost:5000/upload-photo",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      console.log("Photo upload response:", data);
+      console.log("Photo URL:", data.data.path);
+
+      const updatedProfile = {
+        ...editedProfile,
+        photoUrl: data.data.path,
+      };
+
+      console.log("Updated Profile:", updatedProfile);
+
+      setEditedProfile(updatedProfile);
+      setUserData(updatedProfile);
+      console.log("USER data:", userData);
+      await handleSaveChanges(updatedProfile);
+
+      setProfileImage(null);
+    } catch (error) {
+      console.error(
+        "Error uploading photo:",
+        error.response ? error.response.data : error
+      );
+    }
+  };
+
+  // Handle profile image change
+  const handleProfileImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfileImage(file);
+      setIsImageDialogOpen(false);
+      handlePhotoUpload();
     }
   };
 
@@ -89,13 +146,26 @@ const Profile = () => {
           </Button>
         </CardTitle>
       </CardHeader>
-      <CardContent className="grid md:grid-cols-2 gap-6">
-        {/* Left Column - Profile Details */}
+      <CardContent>
         <div className="space-y-4">
           <Separator />
-          <div className="flex items-center space-x-4">
-            <div className="w-44 h-44 bg-gray-800 rounded-full flex items-center justify-center text-white text-3xl mr-10">
-              {userData?.name[0]}
+          <div className="flex items-center space-x-4 relative">
+            <div className="w-44 h-44 bg-gray-800 rounded-full flex items-center justify-center text-white text-3xl relative group">
+              {userData?.photoUrl ? (
+                <img
+                  src={userData.photoUrl} // Ensure this is the full URL from Cloudinary
+                  alt="Profile"
+                  className="w-full h-full object-cover rounded-full"
+                />
+              ) : (
+                userData?.name?.[0] || "U" // Fallback to first letter or 'U'
+              )}
+              <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Pencil
+                  className="h-8 w-8 text-white cursor-pointer"
+                  onClick={() => setIsImageDialogOpen(true)}
+                />
+              </div>
             </div>
             <div>
               <h2 className="text-xl font-bold">{userData?.name}</h2>
@@ -122,44 +192,30 @@ const Profile = () => {
             </div>
           </div>
         </div>
-
-        {/* Right Column - Resume Section */}
-        <div className="space-y-8 border-l border-gray-700 pl-6">
-          <div className="space-y-2">
-            <h3 className="font-semibold flex items-center mb-10 text-xl">
-              <FileText className="mr-2 h-5 w-5" /> Resume
-            </h3>
-            <Separator />
-            {userData?.resumeFileName ? (
-              <div className="bg-black p-4 rounded-md flex items-center justify-between">
-                <span className="text-secondary-foreground">
-                  {userData?.resumeFileName}
-                </span>
-                <Button size="sm">View</Button>
-              </div>
-            ) : (
-              <div className="border-2 border-dashed border-gray-600 p-6 text-center">
-                <Input
-                  type="file"
-                  accept=".pdf"
-                  onChange={() => console.log("Uploading resume...")}
-                  className="hidden"
-                  id="resume-upload"
-                />
-                <Label
-                  htmlFor="resume-upload"
-                  className="flex flex-col items-center cursor-pointer"
-                >
-                  <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
-                  <span className="text-muted-foreground">Upload Resume</span>
-                </Label>
-              </div>
-            )}
-            <Separator />
-          </div>
-        </div>
       </CardContent>
 
+      {/* Profile Image Dialog */}
+      <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
+        <DialogContent className="max-w-md bg-black bg-opacity-90 border-white">
+          <DialogHeader>
+            <DialogTitle>Update Profile Image</DialogTitle>
+            <DialogDescription>
+              Select an image file to update your profile picture.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={handleProfileImageChange}
+              className="bg-black text-white"
+            />
+            <Button onClick={() => setIsImageDialogOpen(false)}>Cancel</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Profile Dialog */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="max-w-2xl bg-black bg-opacity-90 border-white">
           <DialogHeader>
@@ -173,7 +229,7 @@ const Profile = () => {
             <div className="space-y-2">
               <Label>Name</Label>
               <Input
-                value={editedProfile.name}
+                value={editedProfile?.name}
                 onChange={(e) =>
                   setEditedProfile((prev) => ({
                     ...prev,
@@ -187,7 +243,7 @@ const Profile = () => {
             <div className="space-y-2">
               <Label>Email</Label>
               <Input
-                value={editedProfile.email}
+                value={editedProfile?.email}
                 onChange={(e) =>
                   setEditedProfile((prev) => ({
                     ...prev,
@@ -201,7 +257,7 @@ const Profile = () => {
             <div className="space-y-2">
               <Label>Bio</Label>
               <Textarea
-                value={editedProfile.bio}
+                value={editedProfile?.bio}
                 onChange={(e) =>
                   setEditedProfile((prev) => ({
                     ...prev,
@@ -215,7 +271,7 @@ const Profile = () => {
             <div className="space-y-2">
               <Label>Skills</Label>
               <Input
-                value={editedProfile.skills.join(", ")}
+                value={editedProfile?.skills?.join(", ")}
                 onChange={(e) =>
                   setEditedProfile((prev) => ({
                     ...prev,
@@ -230,7 +286,9 @@ const Profile = () => {
             </div>
 
             <div className="space-y-2">
-              <Button onClick={handleSaveChanges}>Save Changes</Button>
+              <Button onClick={() => handleSaveChanges(editedProfile)}>
+                Save Changes
+              </Button>
             </div>
           </div>
         </DialogContent>

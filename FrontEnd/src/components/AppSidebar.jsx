@@ -1,5 +1,6 @@
 "use client";
-
+import { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Sidebar,
   SidebarContent,
@@ -39,6 +40,7 @@ export function AddSidebar({ setActiveComponent }) {
     name: "Rishabh Saini",
     email: "rishabhsaini1098@gmail.com",
   };
+  const [userData, setUserData] = useState(null);
 
   const navigate = useNavigate();
 
@@ -50,6 +52,25 @@ export function AddSidebar({ setActiveComponent }) {
     { title: "Recommended Courses", icon: SquarePi },
     { title: "Community", icon: MessageCircleMore },
   ];
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const { data } = await axios.get(
+          "http://localhost:5000/api/auth/profile",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setUserData(data);
+      } catch (error) {
+        console.error("Error fetching profile data:", error);
+      }
+    };
+
+    fetchProfileData();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -91,12 +112,13 @@ export function AddSidebar({ setActiveComponent }) {
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-2 w-full p-4 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 rounded-md">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={userData?.photoUrl} alt={userData?.name} />
                 </Avatar>
                 <div className="flex flex-col items-start text-left flex-1">
-                  <span className="font-medium text-sm">{user.name}</span>
-                  <span className="text-xs text-gray-500">{user.email}</span>
+                  <span className="font-medium text-sm">{userData?.name}</span>
+                  <span className="text-xs text-gray-500">
+                    {userData?.email}
+                  </span>
                 </div>
                 <ChevronsUpDown className="size-4" />
               </button>
@@ -105,12 +127,14 @@ export function AddSidebar({ setActiveComponent }) {
               <DropdownMenuLabel>
                 <div className="flex items-center gap-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                    <AvatarImage
+                      src={userData?.photoUrl}
+                      alt={userData?.name}
+                    />
                   </Avatar>
                   <div>
                     <span className="block text-sm font-medium">
-                      {user.name}
+                      {userData?.name}
                     </span>
                   </div>
                 </div>

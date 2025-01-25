@@ -4,7 +4,8 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-
+const {uploadRoutes} = require('./routes/uploadRoutes');
+const { uploadPhoto, uploadResume } = require('./multerConfig');
 dotenv.config();
 
 const app = express();
@@ -19,6 +20,15 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
+
+app.post('/upload-photo', uploadPhoto.single('photo'), (req, res) => {
+  res.status(200).json({ message: 'Photo uploaded successfully', data: req.file });
+  console.log("backend "+ JSON.stringify(req.file))
+});
+
+app.post('/upload-resume', uploadResume.single('resume'), (req, res) => {
+  res.status(200).json({ message: 'Resume uploaded successfully', data: req.file });
+});
 
 // Base Route
 app.get('/', (req, res) => {

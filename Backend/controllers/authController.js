@@ -71,8 +71,7 @@ exports.getUserProfile = async (req, res) => {
       name: user.name,
       bio: user.bio,
       skills: user.skills,
-      resume: user.resume,
-      profileCompleted: user.profileCompleted,
+      photoUrl: user.photoUrl,
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -81,7 +80,7 @@ exports.getUserProfile = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, email, bio, skills } = req.body;
+    const { name, email, bio, skills, photoUrl } = req.body;
 
     // Find the user by ID (we'll get the user ID from the JWT token)
     const user = await User.findById(req.user.id); // `req.user.id` comes from the authenticate middleware
@@ -95,7 +94,7 @@ exports.updateProfile = async (req, res) => {
     user.email = email || user.email;
     user.bio = bio || user.bio;
     user.skills = skills || user.skills;
-
+    user.photoUrl = photoUrl || user.photoUrl;
     // Save the updated user data
     await user.save();
 
@@ -107,6 +106,7 @@ exports.updateProfile = async (req, res) => {
         email: user.email,
         bio: user.bio,
         skills: user.skills,
+        photoUrl: user.photoUrl,
       },
     });
   } catch (error) {
