@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
+import { Atom } from "react-loading-indicators";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,7 @@ import { useNavigate } from "react-router-dom";
 const Profile = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [error, setError] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
@@ -38,8 +40,7 @@ const Profile = () => {
           }
         );
         setUserData(data);
-        console.log("User data 11:", data);
-        setEditedProfile(data); // Initialize form with user data
+        setEditedProfile(data);
       } catch (error) {
         navigate("/signingsignup");
       } finally {
@@ -61,9 +62,6 @@ const Profile = () => {
         }
       );
 
-      console.log("Backend response on profile update:", response.data);
-      console.log("Updated profile sent:", updatedProfile);
-
       setUserData((prevUserData) => ({
         ...prevUserData,
         ...updatedProfile,
@@ -78,11 +76,13 @@ const Profile = () => {
       setError("Error saving profile data.");
     }
   };
-  const handlePhotoUpload = async () => {
-    if (!profileImage) return;
 
+  const handlePhotoUpload = async (file) => {
+    if (!file) return;
+
+    setUploadingPhoto(true);
     const formData = new FormData();
-    formData.append("photo", profileImage);
+    formData.append("photo", file);
 
     try {
       const { data } = await axios.post(
@@ -95,37 +95,36 @@ const Profile = () => {
         }
       );
 
-      console.log("Photo upload response:", data);
-      console.log("Photo URL:", data.data.path);
-
       const updatedProfile = {
         ...editedProfile,
         photoUrl: data.data.path,
       };
 
-      console.log("Updated Profile:", updatedProfile);
-
+      // First update the local state
       setEditedProfile(updatedProfile);
       setUserData(updatedProfile);
-      console.log("USER data:", userData);
+
+      // Then save to backend
       await handleSaveChanges(updatedProfile);
 
       setProfileImage(null);
+      setIsImageDialogOpen(false);
     } catch (error) {
       console.error(
         "Error uploading photo:",
         error.response ? error.response.data : error
       );
+    } finally {
+      setUploadingPhoto(false);
     }
   };
 
   // Handle profile image change
-  const handleProfileImageChange = (e) => {
+  const handleProfileImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
       setProfileImage(file);
-      setIsImageDialogOpen(false);
-      handlePhotoUpload();
+      await handlePhotoUpload(file);
     }
   };
 
@@ -151,21 +150,29 @@ const Profile = () => {
           <Separator />
           <div className="flex items-center space-x-4 relative">
             <div className="w-44 h-44 bg-gray-800 rounded-full flex items-center justify-center text-white text-3xl relative group">
-              {userData?.photoUrl ? (
-                <img
-                  src={userData.photoUrl} // Ensure this is the full URL from Cloudinary
-                  alt="Profile"
-                  className="w-full h-full object-cover rounded-full"
-                />
+              {uploadingPhoto ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full">
+                  <Atom color="#ffffff" size="medium" />
+                </div>
               ) : (
-                userData?.name?.[0] || "U" // Fallback to first letter or 'U'
+                <>
+                  {userData?.photoUrl ? (
+                    <img
+                      src={userData.photoUrl}
+                      alt="Profile"
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  ) : (
+                    userData?.name?.[0] || "U"
+                  )}
+                  <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Pencil
+                      className="h-8 w-8 text-white cursor-pointer"
+                      onClick={() => setIsImageDialogOpen(true)}
+                    />
+                  </div>
+                </>
               )}
-              <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <Pencil
-                  className="h-8 w-8 text-white cursor-pointer"
-                  onClick={() => setIsImageDialogOpen(true)}
-                />
-              </div>
             </div>
             <div>
               <h2 className="text-xl font-bold">{userData?.name}</h2>
@@ -209,8 +216,14 @@ const Profile = () => {
               accept="image/*"
               onChange={handleProfileImageChange}
               className="bg-black text-white"
+              disabled={uploadingPhoto}
             />
-            <Button onClick={() => setIsImageDialogOpen(false)}>Cancel</Button>
+            <Button
+              onClick={() => setIsImageDialogOpen(false)}
+              disabled={uploadingPhoto}
+            >
+              Cancel
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
