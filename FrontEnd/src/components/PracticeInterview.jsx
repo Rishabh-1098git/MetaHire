@@ -19,15 +19,14 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, ArrowRight } from "lucide-react";
 import pdfToText from "react-pdftotext";
-
+import { Badge } from "@/components/ui/badge";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import { ArrowRight } from "lucide-react";
 
 const InterviewSetup = () => {
   const [uploadedResume, setUploadedResume] = useState("");
@@ -84,6 +83,19 @@ const InterviewSetup = () => {
 
   const navigate = useNavigate();
 
+  const renderSelectedTechnologies = (selected) => {
+    if (!selected || selected.length === 0) return "Select Technologies";
+    return (
+      <div className="flex flex-wrap gap-1">
+        {selected.map((tech) => (
+          <Badge key={tech} variant="secondary" className="mr-1">
+            {tech}
+          </Badge>
+        ))}
+      </div>
+    );
+  };
+
   function extractText(file) {
     setLoading(true);
     pdfToText(file)
@@ -127,7 +139,7 @@ const InterviewSetup = () => {
   - Experience: ${data.experience} years
   - Technologies: ${data.technologies.join(", ")}
   - Target Company: ${data.targetCompany}
-  - Resume Text: ${resumeText}  // Add extracted resume text
+  - Resume Text: ${resumeText}
 
 Ensure the first 8 questions include a mix of behavioral, technical, and resume-related questions that are concise, relevant, and suitable for the specified role, level, and experience. For example, include questions like:
 - "Based on your resume, can you tell us about your experience with [specific technology or project]?"
@@ -189,7 +201,7 @@ Return the output as a single string with each question separated by '|'.`;
               for any role, level, and experience
             </p>
             <button
-              className="bg-black shadow-lg  shadow-blue-900 text-blue-200 font-bold py-3 px-6 rounded-full  hover:shadow-blue-950 transition-all bg-opacity-60 mt-10 border-blue-200 border-2"
+              className="bg-black shadow-lg shadow-blue-900 text-blue-200 font-bold py-3 px-6 rounded-full hover:shadow-blue-950 transition-all bg-opacity-60 mt-10 border-blue-200 border-2"
               onClick={() => setIsModalOpen(true)}
             >
               <div className="flex items-center justify-center position-relative">
@@ -211,7 +223,7 @@ Return the output as a single string with each question separated by '|'.`;
             <ResizableHandle />
             <ResizablePanel defaultSize={75}>
               <div className="flex flex-col h-full items-center justify-center p-6 font-mainFont text-white">
-                <ul className="space-y-4 text-md  text-gray-300">
+                <ul className="space-y-4 text-md text-gray-300">
                   <li>🎧 Wear headphones to ensure clear audio quality.</li>
                   <li>🔇 Sit in a quiet and distraction-free environment.</li>
                   <li>
@@ -261,7 +273,7 @@ Return the output as a single string with each question separated by '|'.`;
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
               {/* Role */}
-              <div className="space-y-2 ">
+              <div className="space-y-2">
                 <Label>Role</Label>
                 <Controller
                   name="role"
@@ -272,7 +284,7 @@ Return the output as a single string with each question separated by '|'.`;
                       <SelectTrigger className="bg-black">
                         <SelectValue placeholder="Select Role" />
                       </SelectTrigger>
-                      <SelectContent className="bg-black ">
+                      <SelectContent className="bg-black">
                         {roles.map((role) => (
                           <SelectItem key={role} value={role}>
                             {role}
@@ -336,24 +348,34 @@ Return the output as a single string with each question separated by '|'.`;
               <Controller
                 name="technologies"
                 control={control}
+                defaultValue={[]}
                 render={({ field }) => (
                   <Select
                     onValueChange={(value) => {
                       const currentTechs = field.value || [];
-                      const newTechs = currentTechs.includes(value)
-                        ? currentTechs.filter((tech) => tech !== value)
-                        : [...currentTechs, value];
-                      field.onChange(newTechs);
+                      if (currentTechs.includes(value)) {
+                        field.onChange(
+                          currentTechs.filter((tech) => tech !== value)
+                        );
+                      } else {
+                        field.onChange([...currentTechs, value]);
+                      }
                     }}
-                    value={field.value[0] || ""}
                   >
                     <SelectTrigger className="bg-black">
-                      <SelectValue placeholder="Select Technologies" />
+                      <SelectValue>
+                        {renderSelectedTechnologies(field.value)}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent className="bg-black">
                       {technologies.map((tech) => (
                         <SelectItem key={tech} value={tech}>
-                          {tech}
+                          <div className="flex items-center">
+                            <span>{tech}</span>
+                            {field.value?.includes(tech) && (
+                              <span className="ml-2">✓</span>
+                            )}
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -394,14 +416,14 @@ Return the output as a single string with each question separated by '|'.`;
                   type="file"
                   accept=".pdf"
                   onChange={handleFileUpload}
-                  className="hidden "
+                  className="hidden"
                   id="resume-upload"
                 />
                 <Label
                   htmlFor="resume-upload"
                   className="flex items-center cursor-pointer bg-secondary text-secondary-foreground hover:bg-secondary/80 p-2 rounded-md"
                 >
-                  <Upload className="mr-2 " /> Upload PDF
+                  <Upload className="mr-2" /> Upload PDF
                 </Label>
                 {uploadedResume && (
                   <span className="text-sm text-muted-foreground">
