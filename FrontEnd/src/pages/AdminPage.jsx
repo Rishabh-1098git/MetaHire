@@ -98,7 +98,7 @@ const AdminPage = () => {
   return (
     <SidebarProvider>
       {/* Full height and width container */}
-      <div className="flex h-screen w-full">
+      <div className="flex h-full w-full">
         {/* Fixed width sidebar */}
         <div className="w-64 flex-shrink-0 bg-gray-800 text-white">
           <SidebarTrigger />
@@ -106,9 +106,7 @@ const AdminPage = () => {
         </div>
 
         {/* Flexible main content area */}
-        <div className="flex-1  p-8 overflow-auto bg-black">
-          {renderContent()}
-        </div>
+        <div className="flex-1  p-8 min-h-full bg-black">{renderContent()}</div>
 
         {/* Modal */}
         <Dialog

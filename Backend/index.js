@@ -6,6 +6,8 @@ const authRoutes = require('./routes/authRoutes');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const {uploadRoutes} = require('./routes/uploadRoutes');
 const { uploadPhoto, uploadResume } = require('./multerConfig');
+const protect = require('./middleware/authMiddleware');
+const User = require('./models/User');
 dotenv.config();
 
 const app = express();
@@ -78,8 +80,6 @@ app.post("/api/gemini/feedback", async (req, res) => {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const result = await model.generateContent(prompt);
 
-    console.log("Type of result.response.text():", typeof result.response.text());
-    console.log("Gemini API Raw Response:", result.response.text());
 
     let rawResponse = result.response.text();
 
@@ -107,7 +107,7 @@ app.post("/api/gemini/feedback", async (req, res) => {
       });
     }
 
-    console.log("Parsed Feedback JSON:", feedback);
+
 
     // Calculate total score
     const totalScore = feedback.reduce((sum, item) => sum + (item.score || 0), 0);
@@ -118,6 +118,51 @@ app.post("/api/gemini/feedback", async (req, res) => {
     res.status(500).json({ message: "Failed to generate feedback." });
   }
 });
+
+
+app.post("/api/user/feedback", protect, async (req, res) => {
+  try {
+    const  userId  = req.user.id; // Extract userId from the token
+    const {feedback, totalScore, role, company, createdAt } = req.body;
+    
+    const feedbacks = feedback;
+    // Update the user document with feedback
+    const user = await User.findById(userId);
+    await User.findByIdAndUpdate(userId, {
+      $push: {
+        feedbacks: {
+          feedbacks,
+          totalScore,
+          role,
+          company,
+          createdAt,
+        },
+      },
+    });
+  
+    res.status(200).json({ message: "Feedback saved successfully" });
+  } catch (error) {
+    console.error("Error saving feedback:", error.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.post("/api/user/get-feedback", protect, async (req, res) => {
+  try {
+    const userId = req.user.id; 
+    const user = await User.findById(userId); 
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(user); 
+  } catch (error) {
+    console.error("Error fetching user data:", error.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 
 

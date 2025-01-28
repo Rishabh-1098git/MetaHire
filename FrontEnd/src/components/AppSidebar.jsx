@@ -36,10 +36,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import { Separator } from "./ui/separator";
 export function AddSidebar({ setActiveComponent }) {
-  const user = {
-    name: "Rishabh Saini",
-    email: "rishabhsaini1098@gmail.com",
-  };
   const [userData, setUserData] = useState(null);
 
   const navigate = useNavigate();

@@ -22,7 +22,7 @@ const MyInterviewPage = () => {
   const questions = location.state?.questions || [];
   const interviewId = location.state?.interviewId;
   const title = location.state?.title;
-  const role = location.state?.role;
+  const company = location.state?.company;
 
   const navigate = useNavigate();
 
@@ -116,8 +116,8 @@ const MyInterviewPage = () => {
       exitFullScreen();
 
       // Navigate and pass the state (questions and answers)
-      navigate(`/admin/interview/${interviewId}/results`, {
-        state: { questions, answers },
+      navigate(`/admin/interview/results/${interviewId}`, {
+        state: { questions, answers, title, company },
       });
     }
   };
@@ -216,9 +216,9 @@ const MyInterviewPage = () => {
         </div>
         <div className="ml-6 text-center">
           <h2 className="text-2xl font-semibold text-[#FFFFFF] mb-2">
-            {title + " Interview"}
+            {company + " Interview"}
           </h2>
-          <p className="text-lg text-[#B0B0B0]">{role}</p>
+          <p className="text-lg text-[#B0B0B0]">{title}</p>
         </div>
         <div className="text-2xl font-semibold">
           Time Left:{" "}

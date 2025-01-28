@@ -54,6 +54,7 @@ const updateProfile = async (req, res) => {
         email: user.email,
         bio: user.bio,
         skills: user.skills,
+        feedbacks: user.feedbacks,
       },
     });
   } catch (error) {

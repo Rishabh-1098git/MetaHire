@@ -72,6 +72,7 @@ exports.getUserProfile = async (req, res) => {
       bio: user.bio,
       skills: user.skills,
       photoUrl: user.photoUrl,
+      feedbacks: user.feedbacks
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

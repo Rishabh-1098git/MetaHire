@@ -15,12 +15,15 @@ import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Atom } from "react-loading-indicators";
 import { Button } from "@/components/ui/button";
+import { jwtDecode } from "jwt-decode";
 function Feedback2() {
-  const { role, company } = { role: "Frontend Developer", company: "Amazon" };
   const location = useLocation();
   const navigate = useNavigate();
   const questions = location.state?.questions || [];
   const answers = location.state?.answers || [];
+  const role = location.state?.title || "";
+  const company = location.state?.company || "";
+  const interviewId = location.pathname.split("/").pop();
 
   const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(null); // Index of the selected question
   const [feedback, setFeedback] = useState([]);
@@ -78,9 +81,36 @@ function Feedback2() {
   };
 
   const handleFinish = async () => {
-    navigate("/admin");
-    console.log("Feedback submitted:", feedback);
-    console.log("Total Score:", totalScore);
+    try {
+      // Get token from localStorage
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("User not authenticated");
+
+      // Decode token to get userId
+      const feedbackData = {
+        feedback,
+        totalScore,
+        role,
+        company,
+        createdAt: new Date().toISOString(),
+      };
+
+      // Send feedback to the backend
+      await axios.post(
+        "http://localhost:5000/api/user/feedback",
+        feedbackData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Navigate to a confirmation page
+      navigate("/admin");
+    } catch (error) {
+      console.error("Error submitting feedback:", error.message);
+    }
   };
 
   return (

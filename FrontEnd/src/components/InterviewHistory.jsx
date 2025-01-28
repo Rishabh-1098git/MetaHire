@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,73 +7,83 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
+import axios from "axios";
 
-function InterviewHistory() {
-  const Interviews = [
-    {
-      title: "Frontend Developer",
-      date: "2022-01-01",
-      company: "Google Inc",
-      interviewId: "rstp456d",
-    },
-    {
-      title: "Frontend Developer",
-      date: "2022-01-02",
-      company: "Meta",
-      interviewId: "rstp446d",
-    },
-    {
-      title: "Backend Developer",
-      date: "2022-02-03",
-      company: "Infosys ",
-      interviewId: "vd4iji53",
-    },
-    {
-      title: "Software Developer",
-      date: "2022-01-05",
-      company: "Google Inc",
-      interviewId: "knodsh67",
-    },
-    {
-      title: "Frontend Developer",
-      date: "2022-01-9",
-      company: "TCS",
-      interviewId: "upi6784d",
-    },
-  ];
+const InterviewHistory = () => {
+  const [feedbackList, setFeedbackList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchFeedback = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) throw new Error("User not authenticated");
+
+        const response = await axios.post(
+          "http://localhost:5000/api/user/get-feedback",
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        console.log(response.data.feedbacks);
+        setFeedbackList(response.data.feedbacks);
+      } catch (err) {
+        console.error("Error fetching feedback:", err);
+        setError("Failed to load feedback. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeedback();
+  }, []);
+
+  if (loading) {
+    return <div className="p-6 text-white">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-red-500">{error}</div>;
+  }
 
   return (
-    <Card className="w-full h-full mx-auto bg-black font-mainFont p-6 text-white">
-      <CardHeader>
-        <CardTitle className="text-xl font-semibold">
-          Previous Interviews
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Interviews.map((interview) => (
-            <Card
-              key={interview.interviewId}
-              className="w-full bg-black border-white"
-            >
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold">
-                  {interview.title}
-                </CardTitle>
-                <p className="text-sm text-gray-400">{interview.company}</p>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-300">Date: {interview.date}</p>
-              </CardContent>
-              <CardFooter className="flex justify-end">
-                <Button size="sm">View Results</Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="min-h-screen bg-black p-6 w-full">
+      <h1 className="text-xl font-semibold text-white mb-6">
+        Previous Interviews
+      </h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {feedbackList.map((interview) => (
+          <Card key={interview._id} className="bg-black border-white">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-white">
+                {interview.role}
+              </CardTitle>
+              <p className="text-sm text-gray-400">{interview.company}</p>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-300">
+                Date:{" "}
+                {interview.createdAt
+                  ? interview.createdAt
+                      .split("T")[0]
+                      .split("-")
+                      .reverse()
+                      .join("-")
+                  : "N/A"}
+              </p>
+            </CardContent>
+            <CardFooter className="flex justify-end">
+              <Button size="sm">View Results</Button>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
+    </div>
   );
-}
+};
 
 export default InterviewHistory;

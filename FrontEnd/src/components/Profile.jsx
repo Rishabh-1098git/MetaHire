@@ -132,7 +132,7 @@ const Profile = () => {
   if (error) return <div>{error}</div>;
 
   return (
-    <Card className="w-full h-full mx-auto bg-black font-mainFont">
+    <Card className="w-full h-full mx-auto bg-black font-mainFont mb-10">
       <CardHeader>
         <CardTitle className="flex justify-between items-center">
           My Profile

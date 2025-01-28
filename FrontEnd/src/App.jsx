@@ -46,7 +46,7 @@ const App = () => {
                   }
                 />
                 <Route
-                  path="admin/interview/:interviewId/results"
+                  path="admin/interview/results/:interviewId"
                   element={
                     <ProtectedRoute>
                       <Feedback2 />

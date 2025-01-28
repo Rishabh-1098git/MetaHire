@@ -171,7 +171,7 @@ Return the output as a single string with each question separated by '|'.`;
             questions,
             interviewId,
             title: data.role,
-            role: data.targetCompany,
+            company: data.targetCompany,
           },
         });
       } else {
@@ -189,7 +189,7 @@ Return the output as a single string with each question separated by '|'.`;
     <>
       <ResizablePanelGroup
         direction="horizontal"
-        className="max-w-full rounded-lg border md:min-w-[450px]"
+        className="max-w-full rounded-lg border md:min-w-[450px] mb-10"
       >
         <ResizablePanel defaultSize={70}>
           <div className="flex flex-col h-full items-center justify-center p-6">
