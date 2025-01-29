@@ -1,5 +1,15 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const  nodemailer = require('nodemailer');
+
+
+
+const bcrypt = require("bcryptjs");
+
+const hashPassword = async (password) => {
+  const saltRounds = 10;
+  return await bcrypt.hash(password, saltRounds);
+};
 
 // Generate JWT token
 const generateToken = (id) => {
@@ -115,3 +125,71 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.forgetPassword = async (req, res) => {
+  try{
+    const {email} = req.body;
+
+    if(!email){
+      return res.status(400).json({message: "Email is required"});
+    }
+
+    const checkUser = await User.findOne({email});
+
+    if(!checkUser){
+      return res.status(404).json({message: "User not found"});
+    }
+    // console.log("User : " + checkUser)
+
+    const token = jwt.sign({email}, process.env.JWT_SECRET, {expiresIn: '1h'});
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      secure: true,
+      auth: {
+        user: process.env.MY_GMAIL,
+        pass: process.env.MY_PASSWORD
+      }
+    })
+
+    const receiver = {
+      from : "mockAI@gmail.com",
+      to: email,
+      subject: "Password Reset Request",
+      text: `Click on this link to reset your password: ${process.env.CLIENT_URL}/reset-password/${token}`
+    }
+
+
+    await transporter.sendMail(receiver);
+
+    return res.status(200).json({message: "Password reset link sent to your email"});
+  }catch(error){
+    return res.status(500).json({message: "Server error"});
+  }
+}
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ message: "Password is required" });
+    }
+
+    const decode = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findOne({ email: decode.email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.password = password;  // Directly assign, will be hashed automatically
+    await user.save();
+
+    return res.status(200).json({ message: "Password reset successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
