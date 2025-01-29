@@ -4,7 +4,7 @@ import { ThemeProvider } from "./components/theme-provider";
 import { Atom } from "react-loading-indicators";
 import ProtectedRoute from "./components/ProtectedRoute ";
 import { Toaster } from "sonner";
-
+import Feedback from "./pages/Feedback";
 const Home = lazy(() => import("./pages/Home"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
@@ -50,6 +50,15 @@ const App = () => {
                   element={
                     <ProtectedRoute>
                       <Feedback2 />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="admin/view-interview"
+                  element={
+                    <ProtectedRoute>
+                      <Feedback />
                     </ProtectedRoute>
                   }
                 />

@@ -8,11 +8,13 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import axios from "axios";
+import { Navigate, useNavigate } from "react-router-dom";
 
 const InterviewHistory = () => {
   const [feedbackList, setFeedbackList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchFeedback = async () => {
@@ -42,6 +44,13 @@ const InterviewHistory = () => {
     fetchFeedback();
   }, []);
 
+  const handleViewResults = (interview) => {
+    console.log("Selected interview:", interview);
+    navigate("/admin/view-interview", {
+      state: { interview: interview },
+    });
+  };
+
   if (loading) {
     return <div className="p-6 text-white">Loading...</div>;
   }
@@ -57,7 +66,11 @@ const InterviewHistory = () => {
       </h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {feedbackList.map((interview) => (
-          <Card key={interview._id} className="bg-black border-white">
+          <Card
+            key={interview._id}
+            className="bg-black border-white cursor-pointer hover:border-blue-500 transition-colors"
+            onClick={() => handleViewResults(interview)}
+          >
             <CardHeader>
               <CardTitle className="text-lg font-semibold text-white">
                 {interview.role}
@@ -77,7 +90,15 @@ const InterviewHistory = () => {
               </p>
             </CardContent>
             <CardFooter className="flex justify-end">
-              <Button size="sm">View Results</Button>
+              <Button
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleViewResults(interview);
+                }}
+              >
+                View Results
+              </Button>
             </CardFooter>
           </Card>
         ))}
