@@ -11,6 +11,7 @@ const AdminPage = lazy(() => import("./pages/AdminPage"));
 const Interview = lazy(() => import("./pages/Interview"));
 import Feedback2 from "./pages/Feedback2";
 import "./App.css";
+import ResetPassword from "./pages/ResetPassword";
 const App = () => {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
@@ -61,6 +62,11 @@ const App = () => {
                       <Feedback />
                     </ProtectedRoute>
                   }
+                />
+
+                <Route
+                  path="/reset-password/:token"
+                  element={<ResetPassword />}
                 />
               </Routes>
             </Suspense>

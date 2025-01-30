@@ -153,11 +153,13 @@ exports.forgetPassword = async (req, res) => {
     })
 
     const receiver = {
-      from : "mockAI@gmail.com",
+      from: "mockAI@gmail.com",
       to: email,
       subject: "Password Reset Request",
-      text: `Click on this link to reset your password: ${process.env.CLIENT_URL}/reset-password/${token}`
-    }
+      // Change this line to use your frontend URL and route
+      text: `Click on this link to reset your password: http://localhost:5173/reset-password/${token}`
+      // Assuming your frontend runs on port 3000
+    };
 
 
     await transporter.sendMail(receiver);
