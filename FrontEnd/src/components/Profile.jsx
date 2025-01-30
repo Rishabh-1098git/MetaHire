@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Pencil } from "lucide-react";
 import { Separator } from "./ui/separator";
 import { useNavigate } from "react-router-dom";
-
+import { FourSquare } from "react-loading-indicators";
 const Profile = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -128,7 +128,12 @@ const Profile = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading)
+    return (
+      <div>
+        <FourSquare color="#2563EB" size="medium" text="" textColor="" />
+      </div>
+    );
   if (error) return <div>{error}</div>;
 
   return (

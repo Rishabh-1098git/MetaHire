@@ -203,28 +203,32 @@ export default function Home() {
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="item-1">
               <AccordionTrigger className="text-gray-200">
-                Is it accessible?
+                What is MockAI?
               </AccordionTrigger>
               <AccordionContent className="text-gray-300">
-                Yes. It adheres to the WAI-ARIA design pattern.
+                MockAI is an AI-powered interview platform where users can log
+                in, upload their resumes, and take AI-generated mock interviews.
+                The AI evaluates the responses and provides detailed feedback to
+                help improve your performance.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-2">
               <AccordionTrigger className="text-gray-200">
-                Is it styled?
+                Will my resume be stored securely?
               </AccordionTrigger>
               <AccordionContent className="text-gray-200">
-                Yes. It comes with default styles that matches the other
-                components&apos; aesthetic.
+                Yes, we prioritize data privacy and security. Your resume is
+                stored securely and is only used to personalize your interview
+                experience.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-3">
               <AccordionTrigger className="text-gray-200">
-                Is it animated?
+                Can I customize my interview experience?
               </AccordionTrigger>
               <AccordionContent className="text-gray-200">
-                Yes. It's animated by default, but you can disable it if you
-                prefer.
+                Yes! You can customize your interview type, difficulty level,
+                and preferred question topics based on your career goals.
               </AccordionContent>
             </AccordionItem>
           </Accordion>

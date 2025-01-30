@@ -61,22 +61,14 @@ export default function Header({ user }) {
                 <NavigationMenuContent>
                   <ul className="grid gap-3 p-4 md:w-[300px]">
                     <li>
-                      <NavigationMenuLink
-                        asChild
-                        onClick={() => navigate("/about/team")}
-                      >
+                      <NavigationMenuLink asChild>
                         <a className="block text-sm hover:underline">
-                          Our Team
-                        </a>
-                      </NavigationMenuLink>
-                    </li>
-                    <li>
-                      <NavigationMenuLink
-                        asChild
-                        onClick={() => navigate("/about/mission")}
-                      >
-                        <a className="block text-sm hover:underline">
-                          Our Mission
+                          Welcome to MOCKAI, a platform built with the vision of
+                          revolutionizing technical interviews. As a solo
+                          developer passionate about solving real-world problems
+                          through technology, I created MOCKAI to provide an
+                          AI-driven interview experience that helps individuals
+                          sharpen their skills.
                         </a>
                       </NavigationMenuLink>
                     </li>
@@ -92,21 +84,25 @@ export default function Header({ user }) {
                 <NavigationMenuContent>
                   <ul className="grid gap-3 p-4 md:w-[300px]">
                     <li>
-                      <NavigationMenuLink
-                        asChild
-                        onClick={() => navigate("/contact/support")}
-                      >
-                        <a className="block text-sm hover:underline">
-                          Customer Support
+                      <NavigationMenuLink asChild>
+                        <a
+                          href="mailto:rishabhsaini1098@gmail.com"
+                          className="block text-sm hover:underline"
+                        >
+                          Gmail: rishabhsaini1098@gmail.com
                         </a>
                       </NavigationMenuLink>
                     </li>
                     <li>
-                      <NavigationMenuLink
-                        asChild
-                        onClick={() => navigate("/contact/careers")}
-                      >
-                        <a className="block text-sm hover:underline">Careers</a>
+                      <NavigationMenuLink asChild>
+                        <a
+                          href="https://www.linkedin.com/in/rishabhsaini1098/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block text-sm hover:underline"
+                        >
+                          LinkedIn: rishabhsaini1098
+                        </a>
                       </NavigationMenuLink>
                     </li>
                   </ul>
@@ -119,9 +115,11 @@ export default function Header({ user }) {
                     navigationMenuTriggerStyle() +
                     " cursor-pointer bg-black bg-opacity-50"
                   }
-                  onClick={() => navigate("/")}
                 >
-                  Github
+                  <a href="https://github.com/Rishabh-1098git/MockAI">
+                    {" "}
+                    Github
+                  </a>
                 </NavigationMenuLink>
               </NavigationMenuItem>
             </NavigationMenuList>
