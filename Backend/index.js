@@ -16,6 +16,13 @@ const PORT = process.env.PORT || 5000;
 // Connect to MongoDB
 connectDB();
 
+app.use(
+  cors({
+    origin: "https://mock-ai-1586-kg6ozdli5-rishabh-sainis-projects-bf91fbfc.vercel.app",
+    credentials: true, // Allow cookies & auth headers
+  })
+);
+
 // Middleware
 app.use(cors());
 app.use(express.json());
