@@ -16,12 +16,13 @@ const PORT = process.env.PORT || 5000;
 // Connect to MongoDB
 connectDB();
 
-app.use(cors({
-  origin: ['https://mock-ai-1586-b9pv8gc3s-rishabh-sainis-projects-bf91fbfc.vercel.app/']
-}));
 
 // Middleware
 app.use(cors());
+
+app.use(cors({
+  origin: ['https://your-frontend-domain.vercel.app']
+}));
 app.use(express.json());
 
 // Routes
