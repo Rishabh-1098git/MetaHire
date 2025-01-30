@@ -1,0 +1,8 @@
+# Ignore environment files in the backend folder
+backend/.env
+
+# Optional: Ignore other common environment files
+backend/.env.local
+backend/.env.development
+backend/.env.production
+backend/.env.test
