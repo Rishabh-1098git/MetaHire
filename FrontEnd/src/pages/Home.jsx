@@ -1,6 +1,6 @@
 import React, { memo, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import Roadmap from "../components/RoadMap";
+import Roadmap from "../components/Roadmap";
 import ResumeImage from "../assets/Resume.png";
 import FeedbackImage from "../assets/Feedback.png";
 import MockInterviewImage from "../assets/MockInterview.png";
