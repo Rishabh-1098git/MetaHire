@@ -21,7 +21,7 @@ connectDB();
 app.use(cors());
 
 app.use(cors({
-  origin: ['https://your-frontend-domain.vercel.app']
+  origin: ['https://mock-ai-1586-cnp1bpg1e-rishabh-sainis-projects-bf91fbfc.vercel.app/']
 }));
 app.use(express.json());
 
