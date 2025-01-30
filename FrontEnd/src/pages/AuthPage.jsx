@@ -37,7 +37,7 @@ const AuthPage = () => {
     const url = isSignUp ? "/api/auth/signup" : "/api/auth/signin";
     try {
       const { data } = await axios.post(
-        `http://localhost:5000${url}`,
+        `${import.meta.env.VITE_REACT_APP_BASE_URL}${url}`,
         formData
       );
       localStorage.setItem("token", data.token);
@@ -59,7 +59,7 @@ const AuthPage = () => {
     try {
       setLoading(true);
       const { data } = await axios.post(
-        "http://localhost:5000/api/auth/forget-password",
+        `${import.meta.env.VITE_REACT_APP_BASE_URL}/api/auth/forget-password`,
         { email: forgotEmail }
       );
 

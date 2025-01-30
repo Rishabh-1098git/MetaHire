@@ -41,7 +41,7 @@ function Feedback2() {
 
       try {
         const response = await axios.post(
-          "http://localhost:5000/api/gemini/feedback",
+          `${import.meta.env.VITE_REACT_APP_BASE_URL}/api/gemini/feedback`,
           {
             questionsAndAnswers: questions.map((q, index) => ({
               question: q,
@@ -97,7 +97,7 @@ function Feedback2() {
 
       // Send feedback to the backend
       await axios.post(
-        "http://localhost:5000/api/user/feedback",
+        `${import.meta.env.VITE_REACT_APP_BASE_URL}/api/user/feedback`,
         feedbackData,
         {
           headers: {

@@ -34,7 +34,7 @@ const Profile = () => {
       try {
         const token = localStorage.getItem("token");
         const { data } = await axios.get(
-          "http://localhost:5000/api/auth/profile",
+          `${import.meta.env.VITE_REACT_APP_BASE_URL}/api/auth/profile`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -55,7 +55,7 @@ const Profile = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
-        "http://localhost:5000/api/auth/profile",
+        `${import.meta.env.VITE_REACT_APP_BASE_URL}/api/auth/profile`,
         updatedProfile,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -86,7 +86,7 @@ const Profile = () => {
 
     try {
       const { data } = await axios.post(
-        "http://localhost:5000/upload-photo",
+        `${import.meta.env.VITE_REACT_APP_BASE_URL}/upload-photo`,
         formData,
         {
           headers: {

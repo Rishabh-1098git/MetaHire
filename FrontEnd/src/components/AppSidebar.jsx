@@ -54,7 +54,7 @@ export function AddSidebar({ setActiveComponent }) {
       try {
         const token = localStorage.getItem("token");
         const { data } = await axios.get(
-          "http://localhost:5000/api/auth/profile",
+          `${import.meta.env.VITE_REACT_APP_BASE_URL}/api/auth/profile`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }

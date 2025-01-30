@@ -136,7 +136,7 @@ The last 2 questions should be coding problems according to the level and experi
 Return the output as a single string with each question separated by '|'.`;
 
       const { data: responseData } = await axios.post(
-        "http://localhost:5000/api/gemini",
+        `${import.meta.env.VITE_REACT_APP_BASE_URL}/api/gemini`,
         { prompt }
       );
 

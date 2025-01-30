@@ -23,7 +23,7 @@ const InterviewHistory = () => {
         if (!token) throw new Error("User not authenticated");
 
         const response = await axios.post(
-          "http://localhost:5000/api/user/get-feedback",
+          `${import.meta.env.VITE_REACT_APP_BASE_URL}/api/user/get-feedback`,
           {},
           {
             headers: {
