@@ -14,12 +14,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-
+import { FourSquare } from "react-loading-indicators";
 const AuthPage = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [forgotEmail, setForgotEmail] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const toggleMode = () => {
@@ -56,13 +57,16 @@ const AuthPage = () => {
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     try {
+      setLoading(true);
       const { data } = await axios.post(
         "http://localhost:5000/api/auth/forget-password",
         { email: forgotEmail }
       );
+
       toast(
         "Reset link sent! Please check your email for the password reset link"
       );
+      setLoading(false);
       setIsForgotPassword(false);
       setForgotEmail("");
     } catch (error) {
@@ -91,125 +95,132 @@ const AuthPage = () => {
     <>
       <Header links={links} />
       <div className="flex items-center justify-center min-h-screen font-mainFont">
-        <div className="w-full max-w-md">
-          <Card className="shadow-lg bg-black bg-opacity-50 pb-6 shadow-blue-800">
-            <CardHeader>
-              <CardTitle className="text-2xl text-center">
-                {isForgotPassword
-                  ? "Forgot Password"
-                  : isSignUp
-                  ? "Create an Account"
-                  : "Welcome Back"}
-              </CardTitle>
-              <CardDescription className="text-center">
-                {isForgotPassword
-                  ? "Enter your email to receive a reset link"
-                  : isSignUp
-                  ? "Enter your details to create a new account"
-                  : "Enter your credentials to log in"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isForgotPassword ? (
-                // Forgot Password Form
-                <form onSubmit={handleForgotPassword}>
-                  <div className="flex flex-col gap-6 ">
-                    <div className="grid gap-2">
-                      <Label htmlFor="forgotEmail">Email</Label>
-                      <Input
-                        id="forgotEmail"
-                        type="email"
-                        value={forgotEmail}
-                        onChange={(e) => setForgotEmail(e.target.value)}
-                        placeholder="Enter your email"
-                        required
-                        className="bg-black bg-opacity-50"
-                      />
+        {loading ? (
+          <div className="flex flex-col items-center justify-center">
+            <FourSquare color="#2563EB" size="medium" text="" textColor="" />
+            <p className="font-mainFont">Sending reset mail ...</p>
+          </div>
+        ) : (
+          <div className="w-full max-w-md">
+            <Card className="shadow-lg bg-black bg-opacity-50 pb-6 shadow-blue-800">
+              <CardHeader>
+                <CardTitle className="text-2xl text-center">
+                  {isForgotPassword
+                    ? "Forgot Password"
+                    : isSignUp
+                    ? "Create an Account"
+                    : "Welcome Back"}
+                </CardTitle>
+                <CardDescription className="text-center">
+                  {isForgotPassword
+                    ? "Enter your email to receive a reset link"
+                    : isSignUp
+                    ? "Enter your details to create a new account"
+                    : "Enter your credentials to log in"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isForgotPassword ? (
+                  // Forgot Password Form
+                  <form onSubmit={handleForgotPassword}>
+                    <div className="flex flex-col gap-6 ">
+                      <div className="grid gap-2">
+                        <Label htmlFor="forgotEmail">Email</Label>
+                        <Input
+                          id="forgotEmail"
+                          type="email"
+                          value={forgotEmail}
+                          onChange={(e) => setForgotEmail(e.target.value)}
+                          placeholder="Enter your email"
+                          required
+                          className="bg-black bg-opacity-50"
+                        />
+                      </div>
+                      <Button type="submit" className="w-full">
+                        Send Reset Link
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => setIsForgotPassword(false)}
+                      >
+                        Back to Login
+                      </Button>
                     </div>
-                    <Button type="submit" className="w-full">
-                      Send Reset Link
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => setIsForgotPassword(false)}
-                    >
-                      Back to Login
-                    </Button>
-                  </div>
-                </form>
-              ) : (
-                // Login/Signup Form
-                <form onSubmit={handleSubmit}>
-                  <div className="flex flex-col gap-6">
-                    <div className="grid gap-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        placeholder="Enter your email"
-                        required
-                        className="bg-black bg-opacity-50"
-                      />
+                  </form>
+                ) : (
+                  // Login/Signup Form
+                  <form onSubmit={handleSubmit}>
+                    <div className="flex flex-col gap-6">
+                      <div className="grid gap-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          placeholder="Enter your email"
+                          required
+                          className="bg-black bg-opacity-50"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="password">Password</Label>
+                        <Input
+                          id="password"
+                          name="password"
+                          type="password"
+                          value={formData.password}
+                          onChange={handleChange}
+                          placeholder="Enter your password"
+                          required
+                          className="bg-black bg-opacity-50"
+                        />
+                        {!isSignUp && (
+                          <div className="text-right">
+                            <span
+                              className="text-sm text-blue-700 hover:underline cursor-pointer"
+                              onClick={() => setIsForgotPassword(true)}
+                            >
+                              Forgot Password?
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <Button type="submit" className="w-full">
+                        {isSignUp ? "Sign Up" : "Sign In"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full flex items-center justify-center"
+                        onClick={handleGoogleSignIn}
+                      >
+                        <FcGoogle className="text-2xl mr-2" />
+                        <span className="text-gray-300 font-medium">
+                          Sign in with Google
+                        </span>
+                      </Button>
                     </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="password">Password</Label>
-                      <Input
-                        id="password"
-                        name="password"
-                        type="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        placeholder="Enter your password"
-                        required
-                        className="bg-black bg-opacity-50"
-                      />
-                      {!isSignUp && (
-                        <div className="text-right">
-                          <span
-                            className="text-sm text-blue-700 hover:underline cursor-pointer"
-                            onClick={() => setIsForgotPassword(true)}
-                          >
-                            Forgot Password?
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <Button type="submit" className="w-full">
-                      {isSignUp ? "Sign Up" : "Sign In"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full flex items-center justify-center"
-                      onClick={handleGoogleSignIn}
-                    >
-                      <FcGoogle className="text-2xl mr-2" />
-                      <span className="text-gray-300 font-medium">
-                        Sign in with Google
-                      </span>
-                    </Button>
-                  </div>
-                </form>
+                  </form>
+                )}
+              </CardContent>
+              {!isForgotPassword && (
+                <div className="mt-4 text-center text-sm">
+                  {isSignUp
+                    ? "Already have an account?"
+                    : "Don't have an account?"}{" "}
+                  <span
+                    className="underline underline-offset-4 cursor-pointer text-blue-700 mx-1 font-bold"
+                    onClick={toggleMode}
+                  >
+                    {isSignUp ? "Sign In" : "Sign Up"}
+                  </span>
+                </div>
               )}
-            </CardContent>
-            {!isForgotPassword && (
-              <div className="mt-4 text-center text-sm">
-                {isSignUp
-                  ? "Already have an account?"
-                  : "Don't have an account?"}{" "}
-                <span
-                  className="underline underline-offset-4 cursor-pointer text-blue-700 mx-1 font-bold"
-                  onClick={toggleMode}
-                >
-                  {isSignUp ? "Sign In" : "Sign Up"}
-                </span>
-              </div>
-            )}
-          </Card>
-        </div>
+            </Card>
+          </div>
+        )}
       </div>
     </>
   );
