@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 5000;
 connectDB();
 
 app.use(cors({
-  origin: ['https://vercel.com/rishabh-sainis-projects-bf91fbfc/mock-ai-1586/C3d3JCmHJBuuGBN6YoTMGC9o65o8']
+  origin: ['https://mock-ai-1586-b9pv8gc3s-rishabh-sainis-projects-bf91fbfc.vercel.app/']
 }));
 
 // Middleware
