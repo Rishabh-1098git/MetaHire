@@ -39,6 +39,9 @@ app.post('/upload-resume', uploadResume.single('resume'), (req, res) => {
 app.get('/', (req, res) => {
   res.send('API is running...');
 });
+app.get('/ping', (req, res) => {
+  res.send('pong');
+});
 
 // Initialize Google Generative AI
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENAI_API_KEY);
