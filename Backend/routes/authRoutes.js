@@ -10,4 +10,5 @@ router.get('/profile', authMiddleware, getUserProfile);
 router.put('/profile', authMiddleware, updateProfile);
 router.post('/forget-password', forgetPassword);
 router.post('/reset-password/:token', resetPassword);
+router.post('/test', test)
 module.exports = router;
