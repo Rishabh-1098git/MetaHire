@@ -22,7 +22,6 @@ app.use(cors());
 app.use(cors({
   origin: [
       'https://mock-ai-1586.vercel.app/.vercel.app',
-      // Add any other allowed origins
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
