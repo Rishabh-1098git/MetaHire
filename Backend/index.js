@@ -21,8 +21,12 @@ connectDB();
 app.use(cors());
 
 app.use(cors({
-  origin: ['https://mock-ai-1586-cnp1bpg1e-rishabh-sainis-projects-bf91fbfc.vercel.app/']
+  origin: ['https://mock-ai-1586.vercel.app', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 app.use(express.json());
 
 // Routes
