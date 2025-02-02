@@ -16,6 +16,7 @@ import axios from "axios";
 import { Atom } from "react-loading-indicators";
 import { Button } from "@/components/ui/button";
 import { jwtDecode } from "jwt-decode";
+
 function Feedback2() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -25,10 +26,10 @@ function Feedback2() {
   const company = location.state?.company || "";
   const interviewId = location.pathname.split("/").pop();
 
-  const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(null); // Index of the selected question
+  const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(null);
   const [feedback, setFeedback] = useState([]);
   const [totalScore, setTotalScore] = useState(0);
-  const [loading, setLoading] = useState(true); // Start with loading state
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [questionScores, setQuestionScores] = useState([]);
 
@@ -54,39 +55,26 @@ function Feedback2() {
         setFeedback(feedback);
         setTotalScore(totalScore);
 
-        // Initialize individual question scores
         const initialScores = feedback.map((f) => f.score || 0);
         setQuestionScores(initialScores);
 
-        // Set the first question as the selected question
-        setSelectedQuestionIndex(0); // Default to first question
+        setSelectedQuestionIndex(0);
       } catch (err) {
         console.error("Error fetching feedback:", err);
         setError("Failed to load feedback. Please try again.");
       } finally {
-        setLoading(false); // Stop loading once data is fetched
+        setLoading(false);
       }
     };
 
     fetchFeedback();
   }, [questions, answers]);
 
-  const handleScoreChange = (index, newScore) => {
-    const updatedScores = [...questionScores];
-    updatedScores[index] = newScore;
-    setQuestionScores(updatedScores);
-
-    const newTotalScore = updatedScores.reduce((acc, score) => acc + score, 0);
-    setTotalScore(newTotalScore);
-  };
-
   const handleFinish = async () => {
     try {
-      // Get token from localStorage
       const token = localStorage.getItem("token");
       if (!token) throw new Error("User not authenticated");
 
-      // Decode token to get userId
       const feedbackData = {
         feedback,
         totalScore,
@@ -95,7 +83,6 @@ function Feedback2() {
         createdAt: new Date().toISOString(),
       };
 
-      // Send feedback to the backend
       await axios.post(
         `${import.meta.env.VITE_REACT_APP_BASE_URL}/api/user/feedback`,
         feedbackData,
@@ -106,7 +93,6 @@ function Feedback2() {
         }
       );
 
-      // Navigate to a confirmation page
       navigate("/admin");
     } catch (error) {
       console.error("Error submitting feedback:", error.message);
@@ -155,13 +141,11 @@ function Feedback2() {
             </div>
           ) : selectedQuestionIndex !== null ? (
             <div className="flex flex-col flex-grow">
-              {/* Display selected question details */}
               <div className="mb-4">
                 <h1 className="text-lg font-bold">
                   {`Question ${selectedQuestionIndex + 1}:`}{" "}
                   {questions[selectedQuestionIndex]}
                 </h1>
-                {/* <p className="text-lg mt-2">{answers[selectedQuestionIndex]}</p> */}
               </div>
 
               <div className="flex flex-1 gap-6">
@@ -180,28 +164,18 @@ function Feedback2() {
                 </div>
               </div>
 
-              {/* Fixed bottom section for score and button */}
               <div className="mt-auto">
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">
                     Score for this Question:
                   </h3>
-                  <input
-                    type="number"
-                    value={questionScores[selectedQuestionIndex] || 0}
-                    onChange={(e) =>
-                      handleScoreChange(
-                        selectedQuestionIndex,
-                        parseInt(e.target.value)
-                      )
-                    }
-                    className="bg-black text-white border-gray-400 border p-2 w-16"
-                    min="0"
-                  />
+                  <span className="bg-black text-white border-gray-400 border p-2 w-16 text-center">
+                    {questionScores[selectedQuestionIndex] || 0}
+                  </span>
                 </div>
               </div>
 
-              <div className="mt-2 ">
+              <div className="mt-2">
                 <h3 className="text-lg font-semibold">
                   Total Score: {totalScore}
                 </h3>

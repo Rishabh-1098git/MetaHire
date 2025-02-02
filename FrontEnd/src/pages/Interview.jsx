@@ -2,6 +2,16 @@ import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import CodeMirror from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
+import { python } from "@codemirror/lang-python";
+import { cpp } from "@codemirror/lang-cpp";
+import { java } from "@codemirror/lang-java";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { oneDark } from "@codemirror/theme-one-dark";
 import SpeechRecognition, {
   useSpeechRecognition,
@@ -18,53 +28,7 @@ import {
 } from "@/components/ui/dialog";
 
 // Sandbox creation for safe code execution
-const createSandbox = () => {
-  const logs = [];
-  const proxiedConsole = {
-    log: (...args) => {
-      logs.push(["log", ...args]);
-    },
-    error: (...args) => {
-      logs.push(["error", ...args]);
-    },
-    warn: (...args) => {
-      logs.push(["warn", ...args]);
-    },
-    info: (...args) => {
-      logs.push(["info", ...args]);
-    },
-  };
-
-  const safeEval = (code) => {
-    try {
-      const func = new Function(
-        "console",
-        `
-        "use strict";
-        return (function() {
-          ${code}
-        })();
-      `
-      );
-
-      const result = func(proxiedConsole);
-
-      return {
-        success: true,
-        result: result,
-        logs: logs,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message,
-        logs: logs,
-      };
-    }
-  };
-
-  return safeEval;
-};
+// Constants for Judge0 API
 
 const MyInterviewPage = () => {
   const location = useLocation();
@@ -95,6 +59,8 @@ const MyInterviewPage = () => {
   } = useSpeechRecognition();
 
   const currentQuestion = questions[currentQuestionIndex];
+
+  const [selectedLanguage, setSelectedLanguage] = useState("javascript");
 
   // Fullscreen handlers
   const enterFullScreen = () => {
@@ -250,65 +216,114 @@ const MyInterviewPage = () => {
     }
   };
 
-  // Code execution
-  const runCode = async () => {
-    setIsExecuting(true);
-    const safeEval = createSandbox();
-    const code = codeSolutions[currentQuestionIndex];
+  const JUDGE0_API_URL = "https://judge0-ce.p.rapidapi.com";
+  const JUDGE0_HEADERS = {
+    "X-RapidAPI-Host": "judge0-ce.p.rapidapi.com",
+    "X-RapidAPI-Key": "3d37918c6bmsh0cbc35934ed5233p1aeea3jsnaea159f596a2", // Replace with your RapidAPI key
+    "Content-Type": "application/json",
+  };
+
+  // Language IDs for Judge0
+  const LANGUAGE_IDS = {
+    javascript: 63, // Node.js
+    python: 71, // Python 3
+    cpp: 54, // C++ (GCC 9.2.0)
+    java: 62, // Java (OpenJDK 13.0.1)
+  };
+
+  // Function to submit code to Judge0
+  const submitCode = async (code, languageId) => {
+    const submission = {
+      source_code: code,
+      language_id: languageId,
+      stdin: "",
+    };
 
     try {
-      const result = safeEval(code);
+      // Create submission
+      const submitResponse = await fetch(`${JUDGE0_API_URL}/submissions`, {
+        method: "POST",
+        headers: JUDGE0_HEADERS,
+        body: JSON.stringify(submission),
+      });
 
-      let formattedOutput = "";
+      const submitData = await submitResponse.json();
+      const token = submitData.token;
 
-      // Format console logs
-      if (result.logs.length > 0) {
-        formattedOutput += result.logs
-          .map(([type, ...args]) => {
-            const message = args
-              .map((arg) =>
-                typeof arg === "object"
-                  ? JSON.stringify(arg, null, 2)
-                  : String(arg)
-              )
-              .join(" ");
+      // Poll for results
+      let result;
+      let attempts = 0;
+      const maxAttempts = 10;
 
-            switch (type) {
-              case "error":
-                return `❌ ${message}`;
-              case "warn":
-                return `⚠️ ${message}`;
-              case "info":
-                return `ℹ️ ${message}`;
-              default:
-                return `> ${message}`;
-            }
-          })
-          .join("\n");
-        formattedOutput += "\n\n";
-      }
+      while (attempts < maxAttempts) {
+        const checkResponse = await fetch(
+          `${JUDGE0_API_URL}/submissions/${token}`,
+          {
+            method: "GET",
+            headers: JUDGE0_HEADERS,
+          }
+        );
 
-      // Add execution result
-      if (result.success) {
-        if (result.result !== undefined) {
-          formattedOutput += `✅ Return value: ${
-            typeof result.result === "object"
-              ? JSON.stringify(result.result, null, 2)
-              : result.result
-          }`;
-        } else {
-          formattedOutput += "✅ Code executed successfully!";
+        result = await checkResponse.json();
+
+        if (result.status.id > 2) {
+          // Status > 2 means processing is complete
+          break;
         }
-      } else {
-        formattedOutput += `❌ Error: ${result.error}`;
+
+        attempts++;
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second before next attempt
       }
 
-      setOutput(formattedOutput);
+      return formatJudge0Result(result);
     } catch (error) {
-      setOutput(`❌ Runtime Error: ${error.message}`);
-    } finally {
-      setIsExecuting(false);
+      return {
+        success: false,
+        error: "Execution service error: " + error.message,
+        logs: [],
+      };
     }
+  };
+
+  // Format Judge0 result to match your existing output format
+  const formatJudge0Result = (result) => {
+    const logs = [];
+
+    // Add compilation error if any
+    if (result.compile_output) {
+      logs.push(["error", result.compile_output]);
+    }
+
+    // Add program output if any
+    if (result.stdout) {
+      logs.push(["log", result.stdout]);
+    }
+
+    // Add runtime error if any
+    if (result.stderr) {
+      logs.push(["error", result.stderr]);
+    }
+
+    return {
+      success: result.status.id === 3, // Status 3 means Accepted
+      result: result.stdout,
+      error: result.status.description,
+      logs: logs,
+    };
+  };
+
+  const runCode = async (code, selectedLanguage) => {
+    const languageId = LANGUAGE_IDS[selectedLanguage];
+    console.log("running code: " + code);
+    if (!languageId) {
+      return {
+        success: false,
+        error: "Unsupported language",
+        logs: [],
+      };
+    }
+
+    return await submitCode(code, languageId);
   };
 
   const formatTime = (seconds) => {
@@ -317,6 +332,21 @@ const MyInterviewPage = () => {
     return `${minutes.toString().padStart(2, "0")}:${secs
       .toString()
       .padStart(2, "0")}`;
+  };
+
+  // Language configuration
+  const languageExtensions = {
+    javascript: [javascript()],
+    python: [python()],
+    cpp: [cpp()],
+    java: [java()],
+  };
+
+  // Function to get proper language extension
+  const getLanguageExtension = () => {
+    return (
+      languageExtensions[selectedLanguage] || languageExtensions.javascript
+    );
   };
 
   return (
@@ -454,20 +484,55 @@ const MyInterviewPage = () => {
           {currentQuestionIndex >= questions.length - 2 ? (
             // Code Editor Section
             <div className="flex flex-col h-full">
+              {/* Language Selector */}
+              <div className="mb-2">
+                <Select
+                  value={selectedLanguage}
+                  onValueChange={(value) => setSelectedLanguage(value)}
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Select language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="javascript">JavaScript</SelectItem>
+                    <SelectItem value="python">Python</SelectItem>
+                    <SelectItem value="java">Java</SelectItem>
+                    <SelectItem value="cpp">C++</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="flex-1">
                 <CodeMirror
                   value={codeSolutions[currentQuestionIndex]}
-                  height="calc(100vh - 280px)"
-                  extensions={[javascript()]}
+                  height="calc(100vh - 320px)"
+                  extensions={getLanguageExtension()}
                   theme={oneDark}
                   onChange={(value) => saveCodeSolution(value)}
                   className="rounded-lg border border-[#2C2C2C]"
                 />
               </div>
               <button
-                onClick={() => {
-                  runCode();
-                  setActiveTab("output");
+                onClick={async () => {
+                  setIsExecuting(true);
+                  const code = codeSolutions[currentQuestionIndex];
+                  console.log("Current code:", code); // Debug log
+                  try {
+                    const result = await runCode(code, selectedLanguage);
+                    console.log("Execution result:", result); // Debug log
+                    setOutput(
+                      result.logs
+                        .map(
+                          ([type, message]) =>
+                            `${type === "error" ? "❌" : "✅"} ${message}`
+                        )
+                        .join("\n")
+                    );
+                    setActiveTab("output");
+                  } catch (error) {
+                    setOutput(`❌ Error: ${error.message}`);
+                  } finally {
+                    setIsExecuting(false);
+                  }
                 }}
                 disabled={isExecuting}
                 className={`py-2 px-6 bg-[#27BA41] hover:bg-[#45A049] text-white font-medium rounded-lg transition duration-200 w-36 ${
