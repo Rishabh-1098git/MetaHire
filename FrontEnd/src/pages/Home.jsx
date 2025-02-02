@@ -57,7 +57,7 @@ export default function Home() {
           transition={{ duration: 1 }}
         >
           <h1 className="text-5xl lg:text-7xl font-bold mb-6 text-blue-600">
-            Welcome to MockAI
+            Welcome to MetaHire
           </h1>
           <p className="text-lg lg:text-2xl mb-6">
             Master your interviews with AI-powered tools and insights.
@@ -206,7 +206,7 @@ export default function Home() {
                 What is MetaHire?
               </AccordionTrigger>
               <AccordionContent className="text-gray-300">
-                MockAI is an AI-powered interview platform where users can log
+                MetaHire is an AI-powered interview platform where users can log
                 in, upload their resumes, and take AI-generated mock interviews.
                 The AI evaluates the responses and provides detailed feedback to
                 help improve your performance.

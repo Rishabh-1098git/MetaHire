@@ -48,7 +48,7 @@ const AuthPage = () => {
         isSignUp ? "Account created successfully!" : "Logged in successfully!"
       );
       setLoading(false);
-      navigate("/admin");
+      setTimeout(() => navigate("/admin"), 1500);
     } catch (error) {
       toast(error.response?.data?.message || "An error occurred", {
         variant: "destructive",
