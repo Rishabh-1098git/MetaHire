@@ -244,7 +244,7 @@ export default function Home() {
         }}
       >
         <div className="text-center">
-          <p>© 2025 MockAI - All Rights Reserved</p>
+          <p>© 2025 MetaHire - All Rights Reserved</p>
         </div>
       </footer>
     </div>
