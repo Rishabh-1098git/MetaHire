@@ -20,22 +20,10 @@ connectDB();
 // Middleware
 app.use(cors());
 app.use(cors({
-  origin: [
-    'https://metahire.vercel.app',
-    'https://mock-ai-1586.vercel.app',
-    // Include localhost for development if needed
-    'http://localhost:3000'
-  ],
+  origin: ['https://metahire.vercel.app', 'http://localhost:3000'], // Add your frontend URLs
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type', 
-    'Authorization',
-    'X-Requested-With',
-    'Accept',
-    'Origin'
-  ],
-  credentials: true,
-  optionsSuccessStatus: 200
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 
