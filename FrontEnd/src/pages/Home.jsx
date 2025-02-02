@@ -43,7 +43,7 @@ export default function Home() {
   return (
     <div className=" text-gray-800 font-mainFont">
       <div className="relative z-50">
-        <Header links={links} logo="MockAI" className="sticky top-0" />
+        <Header links={links} logo="MetaHire" className="sticky top-0" />
       </div>
       {/* Hero Section */}
       <section className="relative text-white h-screen flex items-center justify-center ">
@@ -203,7 +203,7 @@ export default function Home() {
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="item-1">
               <AccordionTrigger className="text-gray-200">
-                What is MockAI?
+                What is MetaHire?
               </AccordionTrigger>
               <AccordionContent className="text-gray-300">
                 MockAI is an AI-powered interview platform where users can log
@@ -244,7 +244,7 @@ export default function Home() {
         }}
       >
         <div className="text-center">
-          <p>© 2024 MockAI - All Rights Reserved</p>
+          <p>© 2025 MockAI - All Rights Reserved</p>
         </div>
       </footer>
     </div>
