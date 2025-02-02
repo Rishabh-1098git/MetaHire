@@ -33,7 +33,7 @@ export default function Header({ user }) {
           className="text-2xl font-bold cursor-pointer"
           onClick={() => navigate("/")}
         >
-          {"MockAI"}
+          {"MetaHire"}
         </motion.div>
 
         {/* Navigation Links */}
