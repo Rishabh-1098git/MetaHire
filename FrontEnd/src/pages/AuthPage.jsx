@@ -21,6 +21,7 @@ const AuthPage = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [forgotEmail, setForgotEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loading1, setLoading1] = useState(false);
   const navigate = useNavigate();
 
   const toggleMode = () => {
@@ -35,6 +36,7 @@ const AuthPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const url = isSignUp ? "/api/auth/signup" : "/api/auth/signin";
+    setLoading(true);
     try {
       const { data } = await axios.post(
         `${import.meta.env.VITE_REACT_APP_BASE_URL}${url}`,
@@ -45,8 +47,8 @@ const AuthPage = () => {
       toast(
         isSignUp ? "Account created successfully!" : "Logged in successfully!"
       );
-
-      setTimeout(() => navigate("/admin"), 1500);
+      setLoading(false);
+      navigate("/admin");
     } catch (error) {
       toast(error.response?.data?.message || "An error occurred", {
         variant: "destructive",
@@ -98,7 +100,7 @@ const AuthPage = () => {
         {loading ? (
           <div className="flex flex-col items-center justify-center">
             <FourSquare color="#2563EB" size="medium" text="" textColor="" />
-            <p className="font-mainFont">Sending reset mail ...</p>
+            {/* <p className="font-mainFont">Sending reset mail ...</p> */}
           </div>
         ) : (
           <div className="w-full max-w-md">
