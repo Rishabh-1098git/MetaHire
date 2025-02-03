@@ -21,6 +21,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
+import TestimonialSection from "../components/TestimonialSection";
 export default function Home() {
   const navigate = useNavigate();
   const shouldReduceMotion = useReducedMotion();
@@ -194,6 +195,8 @@ export default function Home() {
       <section className="py-16">
         <Roadmap />
       </section>
+
+      <TestimonialSection />
 
       <section className="py-16 flex justify-center items-center">
         <div className="py-16 w-[90%] max-w-4xl">
