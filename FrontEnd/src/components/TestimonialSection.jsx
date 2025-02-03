@@ -13,12 +13,12 @@ const testimonials = [
       "https://media.licdn.com/dms/image/v2/D5603AQG05GoiixW1HQ/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1729890286248?e=1744243200&v=beta&t=sFaX2LtiIGpFYRpXLGs06hjRO-2U4gTXsYSqFuOtDxA",
   },
   {
-    name: "Brian Russell",
-    role: "Product Manager at Meta",
+    name: "Pratyush Ojha",
+    role: "Machine Learning Engineer at Adiyog Tech pvt.ltd",
     content:
       "The resume analysis feature gave me insights I never would have considered. It completely transformed my approach to interviews.",
     avatar:
-      "https://media.licdn.com/dms/image/v2/C4D03AQFN0sIK_ZPT3g/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1527860708195?e=1744243200&v=beta&t=F8gWGVNxpcS651uLMKJvFzZv6pCR1_CE-Q4Iv0HkGOE",
+      "https://media.licdn.com/dms/image/v2/D5603AQG-6dyFmwLoXg/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1726308272507?e=1744243200&v=beta&t=GuijiAnSsraWCRqirj6XkWM0Z1lnaUjVBjTyN2kTL_U",
   },
   {
     name: "Dev Goyal",
