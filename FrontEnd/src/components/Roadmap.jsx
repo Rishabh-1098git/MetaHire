@@ -24,19 +24,28 @@ export default function Roadmap() {
         </p>
       </div>
       <div className="max-w-7xl mx-auto px-6">
-        <VerticalTimeline>
+        <VerticalTimeline lineColor="hsl(var(--border))">
           {/* Step 1 */}
           <VerticalTimelineElement
-            className="vertical-timeline-element--work"
-            contentStyle={{ background: "#00BCD4", color: "#000" }}
-            contentArrowStyle={{ borderRight: "7px solid white" }}
+            className="vertical-timeline-element--work "
+            contentStyle={{
+              background: "hsl(var(--card))",
+              border: "1px solid hsl(var(--border))",
+              boxShadow:
+                "0 4px 15px -1px rgba(29, 78, 246, 0.6), 0 2px 8px -2px rgba(29, 78, 246, 0.6)",
+              borderRadius: "var(--radius)",
+              padding: "1.5rem",
+            }}
+            contentArrowStyle={{
+              borderRight: "7px solid hsl(var(--border))",
+            }}
             iconStyle={{ background: "#00bcd4", color: "#fff" }}
             icon={<FaUserPlus />}
           >
-            <h3 className="vertical-timeline-element-title text-xl font-bold">
+            <h3 className="vertical-timeline-element-title text-xl font-bold text-foreground">
               Step 1: Sign Up
             </h3>
-            <p className="text-gray-200">
+            <p className="text-muted-foreground mt-2">
               Create your account to get started with the interview process.
             </p>
           </VerticalTimelineElement>
@@ -44,15 +53,24 @@ export default function Roadmap() {
           {/* Step 2 */}
           <VerticalTimelineElement
             className="vertical-timeline-element--work"
-            contentStyle={{ background: "#F7B52D", color: "#000" }}
-            contentArrowStyle={{ borderRight: "7px solid white" }}
+            contentStyle={{
+              background: "hsl(var(--card))",
+              border: "1px solid hsl(var(--border))",
+              boxShadow:
+                "0 4px 15px -1px rgba(29, 78, 246, 0.6), 0 2px 8px -2px rgba(29, 78, 246, 0.6)",
+              borderRadius: "var(--radius)",
+              padding: "1.5rem",
+            }}
+            contentArrowStyle={{
+              borderRight: "7px solid hsl(var(--border))",
+            }}
             iconStyle={{ background: "#f7b52d", color: "#fff" }}
             icon={<FaClipboardList />}
           >
-            <h3 className="vertical-timeline-element-title text-xl font-bold">
+            <h3 className="vertical-timeline-element-title text-xl font-bold text-foreground">
               Step 2: Create Meeting
             </h3>
-            <p className="text-gray-200">
+            <p className="text-muted-foreground mt-2">
               Schedule your interview session at a time that works best for you.
             </p>
           </VerticalTimelineElement>
@@ -60,15 +78,24 @@ export default function Roadmap() {
           {/* Step 3 */}
           <VerticalTimelineElement
             className="vertical-timeline-element--work"
-            contentStyle={{ background: "#FF6F6F", color: "#000" }}
-            contentArrowStyle={{ borderRight: "7px solid white" }}
+            contentStyle={{
+              background: "hsl(var(--card))",
+              border: "1px solid hsl(var(--border))",
+              boxShadow:
+                "0 4px 15px -1px rgba(29, 78, 246, 0.6), 0 2px 8px -2px rgba(29, 78, 246, 0.6)",
+              borderRadius: "var(--radius)",
+              padding: "1.5rem",
+            }}
+            contentArrowStyle={{
+              borderRight: "7px solid hsl(var(--border))",
+            }}
             iconStyle={{ background: "#ff6f6f", color: "#fff" }}
             icon={<FaVideo />}
           >
-            <h3 className="vertical-timeline-element-title text-xl font-bold">
+            <h3 className="vertical-timeline-element-title text-xl font-bold text-foreground">
               Step 3: Attend Interview
             </h3>
-            <p className="text-gray-200">
+            <p className="text-muted-foreground mt-2">
               Join the virtual interview with your recruiter or panel members.
             </p>
           </VerticalTimelineElement>
@@ -76,15 +103,23 @@ export default function Roadmap() {
           {/* Step 4 */}
           <VerticalTimelineElement
             className="vertical-timeline-element--work"
-            contentStyle={{ background: "#4CAF50", color: "#000" }}
-            contentArrowStyle={{ borderRight: "7px solid white" }}
+            contentStyle={{
+              background: "hsl(var(--card))",
+              border: "1px solid hsl(var(--border))",
+              boxShadow:
+                "0 4px 15px -1px rgba(29, 78, 246, 0.6), 0 2px 8px -2px rgba(29, 78, 246, 0.6)",
+              padding: "1.5rem",
+            }}
+            contentArrowStyle={{
+              borderRight: "7px solid hsl(var(--border))",
+            }}
             iconStyle={{ background: "#4caf50", color: "#fff" }}
             icon={<FaChartLine />}
           >
-            <h3 className="vertical-timeline-element-title text-xl font-bold">
+            <h3 className="vertical-timeline-element-title text-xl font-bold text-foreground">
               Step 4: Review Results
             </h3>
-            <p className="text-gray-200">
+            <p className="text-muted-foreground mt-2">
               Get insights into your interview performance and next steps.
             </p>
           </VerticalTimelineElement>
@@ -92,15 +127,24 @@ export default function Roadmap() {
           {/* Step 5 */}
           <VerticalTimelineElement
             className="vertical-timeline-element--work"
-            contentStyle={{ background: "#7952B3", color: "#000" }}
-            contentArrowStyle={{ borderRight: "7px solid white" }}
+            contentStyle={{
+              background: "hsl(var(--card))",
+              border: "1px solid hsl(var(--border))",
+              boxShadow:
+                "0 4px 15px -1px rgba(29, 78, 246, 0.6), 0 2px 8px -2px rgba(29, 78, 246, 0.6)",
+              borderRadius: "var(--radius)",
+              padding: "1.5rem",
+            }}
+            contentArrowStyle={{
+              borderRight: "7px solid hsl(var(--border))",
+            }}
             iconStyle={{ background: "#7952b3", color: "#fff" }}
             icon={<FaComments />}
           >
-            <h3 className="vertical-timeline-element-title text-xl font-bold">
+            <h3 className="vertical-timeline-element-title text-xl font-bold text-foreground">
               Step 5: Receive Feedback
             </h3>
-            <p className="text-gray-200">
+            <p className="text-muted-foreground mt-2">
               Access detailed feedback to improve for future opportunities.
             </p>
           </VerticalTimelineElement>

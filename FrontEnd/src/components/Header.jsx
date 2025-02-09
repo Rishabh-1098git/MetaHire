@@ -130,7 +130,7 @@ export default function Header({ user }) {
         <div className="flex items-center space-x-4">
           {!user ? (
             <button
-              className="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-2 px-6 rounded-lg shadow-md hover:shadow-lg hover:from-purple-400 hover:to-blue-400 transition-all"
+              className="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-2 px-5 rounded-lg shadow-md hover:shadow-lg hover:from-purple-400 hover:to-blue-400 transition-all"
               onClick={handleAuthClick}
             >
               Sign In / Sign Up

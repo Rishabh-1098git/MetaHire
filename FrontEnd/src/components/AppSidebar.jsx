@@ -35,9 +35,9 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Separator } from "./ui/separator";
+
 export function AddSidebar({ setActiveComponent }) {
   const [userData, setUserData] = useState(null);
-
   const navigate = useNavigate();
 
   const menuItems = [
@@ -71,6 +71,10 @@ export function AddSidebar({ setActiveComponent }) {
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/");
+  };
+
+  const getInitial = (name) => {
+    return name ? name.charAt(0).toUpperCase() : "U";
   };
 
   return (
@@ -109,6 +113,9 @@ export function AddSidebar({ setActiveComponent }) {
               <button className="flex items-center gap-2 w-full p-4 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 rounded-md">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={userData?.photoUrl} alt={userData?.name} />
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {getInitial(userData?.name)}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col items-start text-left flex-1">
                   <span className="font-medium text-sm">{userData?.name}</span>
@@ -119,7 +126,7 @@ export function AddSidebar({ setActiveComponent }) {
                 <ChevronsUpDown className="size-4" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-48">
+            <DropdownMenuContent className="w-48 bg-black bg-opacity-60">
               <DropdownMenuLabel>
                 <div className="flex items-center gap-2">
                   <Avatar className="h-8 w-8">
@@ -127,6 +134,9 @@ export function AddSidebar({ setActiveComponent }) {
                       src={userData?.photoUrl}
                       alt={userData?.name}
                     />
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      {getInitial(userData?.name)}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
                     <span className="block text-sm font-medium">
@@ -137,15 +147,11 @@ export function AddSidebar({ setActiveComponent }) {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem>
-                  <Edit className="mr-2 size-4" />
-                  Edit Profile
-                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={handleLogout}
                   className="cursor-pointer"
                 >
-                  <LogOut className="mr-2 size-4 curson-pointer" />
+                  <LogOut className="mr-2 size-4 cursor-pointer" />
                   Logout
                 </DropdownMenuItem>
               </DropdownMenuGroup>
