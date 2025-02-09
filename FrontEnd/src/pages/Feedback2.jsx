@@ -13,9 +13,10 @@ import { Separator } from "../components/ui/separator";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Atom } from "react-loading-indicators";
+import { Atom, BlinkBlur } from "react-loading-indicators";
 import { Button } from "@/components/ui/button";
 import { jwtDecode } from "jwt-decode";
+import { Loader2 } from "lucide-react";
 
 function Feedback2() {
   const location = useLocation();
@@ -32,6 +33,7 @@ function Feedback2() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [questionScores, setQuestionScores] = useState([]);
+  const [loading1, setLoading1] = useState(false);
 
   useEffect(() => {
     const fetchFeedback = async () => {
@@ -72,6 +74,7 @@ function Feedback2() {
 
   const handleFinish = async () => {
     try {
+      setLoading1(true);
       const token = localStorage.getItem("token");
       if (!token) throw new Error("User not authenticated");
 
@@ -92,7 +95,7 @@ function Feedback2() {
           },
         }
       );
-
+      setLoading1(false);
       navigate("/admin");
     } catch (error) {
       console.error("Error submitting feedback:", error.message);
@@ -101,7 +104,7 @@ function Feedback2() {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen overflow-hidden w-full">
+      <div className="flex h-screen overflow-hidden w-full font-mainFont">
         <Sidebar className="w-64 bg-black text-white">
           <SidebarContent>
             <SidebarGroup>
@@ -136,8 +139,8 @@ function Feedback2() {
         <div className="flex-1 flex flex-col bg-black text-gray-300 p-4 overflow-auto w-full font-mainFont">
           {loading ? (
             <div className="flex flex-col justify-center items-center h-screen">
-              <Atom color="#0d57dc" size="medium" text="" textColor="" />
-              <div className="text-lg">Generating Results...</div>
+              <BlinkBlur color="#0d57dc" size="medium" text="" textColor="" />
+              <div className="text-lg mt-5">Generating Results...</div>
             </div>
           ) : selectedQuestionIndex !== null ? (
             <div className="flex flex-col flex-grow">
@@ -179,8 +182,20 @@ function Feedback2() {
                 <h3 className="text-lg font-semibold">
                   Total Score: {totalScore}
                 </h3>
-                <Button onClick={handleFinish} className="mt-2">
-                  Finish Feedback
+                <Button
+                  onClick={handleFinish}
+                  className="mt-2"
+                  disabled={loading1}
+                  type="submit"
+                >
+                  {loading1 ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {"Submitting"}
+                    </>
+                  ) : (
+                    "Finish Feedback"
+                  )}
                 </Button>
               </div>
             </div>
