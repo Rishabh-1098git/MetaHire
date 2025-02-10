@@ -13,9 +13,8 @@ import { Separator } from "../components/ui/separator";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Atom, BlinkBlur } from "react-loading-indicators";
+import { SyncLoader } from "react-spinners";
 import { Button } from "@/components/ui/button";
-import { jwtDecode } from "jwt-decode";
 import { Loader2 } from "lucide-react";
 
 function Feedback2() {
@@ -25,7 +24,6 @@ function Feedback2() {
   const answers = location.state?.answers || [];
   const role = location.state?.title || "";
   const company = location.state?.company || "";
-  const interviewId = location.pathname.split("/").pop();
 
   const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(null);
   const [feedback, setFeedback] = useState([]);
@@ -36,7 +34,7 @@ function Feedback2() {
   const [loading1, setLoading1] = useState(false);
 
   useEffect(() => {
-    const fetchFeedback = async () => {
+    const fetchFeedbackWithRetry = async (retries = 3) => {
       if (questions.length === 0 || answers.length === 0) return;
 
       setLoading(true);
@@ -54,22 +52,34 @@ function Feedback2() {
         );
 
         const { feedback, totalScore } = response.data;
+
+        // Validate response
+        if (!feedback || !Array.isArray(feedback)) {
+          throw new Error("Invalid feedback format");
+        }
+
         setFeedback(feedback);
         setTotalScore(totalScore);
 
         const initialScores = feedback.map((f) => f.score || 0);
         setQuestionScores(initialScores);
-
         setSelectedQuestionIndex(0);
+        setLoading(false);
       } catch (err) {
         console.error("Error fetching feedback:", err);
-        setError("Failed to load feedback. Please try again.");
-      } finally {
-        setLoading(false);
+
+        if (retries > 0) {
+          console.log(`Retrying... (${retries} attempts left)`);
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          await fetchFeedbackWithRetry(retries - 1);
+        } else {
+          setError("Failed to generate feedback. Please try again later.");
+          setLoading(false);
+        }
       }
     };
 
-    fetchFeedback();
+    fetchFeedbackWithRetry();
   }, [questions, answers]);
 
   const handleFinish = async () => {
@@ -95,10 +105,12 @@ function Feedback2() {
           },
         }
       );
-      setLoading1(false);
       navigate("/admin");
     } catch (error) {
       console.error("Error submitting feedback:", error.message);
+      setError("Failed to submit feedback");
+    } finally {
+      setLoading1(false);
     }
   };
 
@@ -139,8 +151,18 @@ function Feedback2() {
         <div className="flex-1 flex flex-col bg-black text-gray-300 p-4 overflow-auto w-full font-mainFont">
           {loading ? (
             <div className="flex flex-col justify-center items-center h-screen">
-              <BlinkBlur color="#0d57dc" size="medium" text="" textColor="" />
+              <SyncLoader color="#0d57dc" />
               <div className="text-lg mt-5">Generating Results...</div>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col justify-center items-center h-screen text-red-500">
+              <p className="text-xl mb-4">{error}</p>
+              <Button
+                onClick={() => window.location.reload()}
+                variant="destructive"
+              >
+                Try Again
+              </Button>
             </div>
           ) : selectedQuestionIndex !== null ? (
             <div className="flex flex-col flex-grow">
@@ -156,7 +178,7 @@ function Feedback2() {
                   <h2 className="text-xl font-semibold mb-2 text-center">
                     Your Solution
                   </h2>
-                  <p>{feedback[selectedQuestionIndex]?.answer}</p>
+                  <p>{answers[selectedQuestionIndex]}</p>
                 </div>
 
                 <div className="flex-1 bg-black p-4 overflow-y-auto border-gray-400 border-2 h-[400px]">
