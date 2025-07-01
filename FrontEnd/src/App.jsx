@@ -12,8 +12,6 @@ const Interview = lazy(() => import("./pages/Interview"));
 import Feedback2 from "./pages/Feedback2";
 import "./App.css";
 import ResetPassword from "./pages/ResetPassword";
-import InterviewProctoring from "./pages/InterviewProctoring";
-import CheatingDetectionSystem from "./pages/CheatingDetectionSystem";
 const App = () => {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
@@ -70,7 +68,6 @@ const App = () => {
                   path="/reset-password/:token"
                   element={<ResetPassword />}
                 />
-                <Route path="/test" element={<CheatingDetectionSystem />} />
               </Routes>
             </Suspense>
           </Router>
