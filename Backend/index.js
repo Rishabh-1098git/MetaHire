@@ -57,11 +57,11 @@ app.post("/api/gemini", async (req, res) => {
   const { prompt } = req.body;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const result = await model.generateContent(prompt);
 
-    const responseText = result.response.text(); // Extract response text
-    res.json({ questions: responseText.split("|") }); // Example split logic
+    const responseText = result.response.text();
+    res.json({ questions: responseText.split("|") });
   } catch (error) {
     console.error("Error calling Gemini API:", error.message);
     res.status(500).json({ message: "Error generating questions." });
@@ -89,9 +89,8 @@ app.post("/api/gemini/feedback", async (req, res) => {
   `;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const result = await model.generateContent(prompt);
-
 
     let rawResponse = result.response.text();
 

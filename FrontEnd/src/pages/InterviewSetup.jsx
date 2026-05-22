@@ -140,12 +140,15 @@ Return the output as a single string with each question separated by '|'.`;
         { prompt }
       );
 
-      const questions = responseData.questions;
+      const questions = responseData.questions
+        .map((q) => q.trim())
+        .filter((q) => q.length > 0)
+        .slice(0, 10);
 
       if (questions && questions.length > 0) {
         const interviewId = Math.random().toString(36).substring(2, 10);
         navigate(`/admin/interview/${interviewId}`, {
-          state: { questions, interviewId },
+          state: { questions, interviewId, title: data.role, company: data.targetCompany },
         });
       } else {
         alert("No questions generated. Please try again.");

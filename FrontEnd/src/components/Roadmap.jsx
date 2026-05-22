@@ -1,154 +1,150 @@
-import {
-  VerticalTimeline,
-  VerticalTimelineElement,
-} from "react-vertical-timeline-component";
-import "react-vertical-timeline-component/style.min.css";
-import {
-  FaUserPlus,
-  FaClipboardList,
-  FaVideo,
-  FaChartLine,
-  FaComments,
-} from "react-icons/fa";
 import React from "react";
+import { motion } from "framer-motion";
+import { UserPlus, ClipboardList, Video, BarChart2, Sparkles } from "lucide-react";
+
+const steps = [
+  {
+    icon: UserPlus,
+    label: "Sign Up",
+    title: "Create your account",
+    description: "Register in seconds and set up your profile with your skills, experience, and target roles.",
+    color: "#22d3ee",
+  },
+  {
+    icon: ClipboardList,
+    label: "Configure",
+    title: "Set up your interview",
+    description: "Upload your resume and choose your role, level, target company, and tech stack.",
+    color: "#1A6EFA",
+  },
+  {
+    icon: Video,
+    label: "Interview",
+    title: "Take the mock interview",
+    description: "Answer 8 tailored behavioral questions and 2 coding challenges in a proctored session.",
+    color: "#818cf8",
+  },
+  {
+    icon: BarChart2,
+    label: "Results",
+    title: "Review your scores",
+    description: "Get a per-question score breakdown with a total out of 100, tracked in your history.",
+    color: "#1A6EFA",
+  },
+  {
+    icon: Sparkles,
+    label: "Feedback",
+    title: "AI-powered insights",
+    description: "Receive detailed Gemini feedback on each answer to identify gaps and improve fast.",
+    color: "#22d3ee",
+  },
+];
 
 export default function Roadmap() {
   return (
-    <section className="py-16 ">
-      <div className="text-center mb-12">
-        <h2 className="text-3xl lg:text-5xl font-bold text-blue-600">
-          How It Works
-        </h2>
-        <p className="text-lg lg:text-xl text-gray-300 mt-4">
-          Your guide to navigating the interview process effortlessly!
-        </p>
-      </div>
-      <div className="max-w-7xl mx-auto px-6">
-        <VerticalTimeline lineColor="hsl(var(--border))">
-          {/* Step 1 */}
-          <VerticalTimelineElement
-            className="vertical-timeline-element--work "
-            contentStyle={{
-              background: "hsl(var(--card))",
-              border: "1px solid hsl(var(--border))",
-              boxShadow:
-                "0 4px 15px -1px rgba(29, 78, 246, 0.6), 0 2px 8px -2px rgba(29, 78, 246, 0.6)",
-              borderRadius: "var(--radius)",
-              padding: "1.5rem",
-            }}
-            contentArrowStyle={{
-              borderRight: "7px solid hsl(var(--border))",
-            }}
-            iconStyle={{ background: "#00bcd4", color: "#fff" }}
-            icon={<FaUserPlus />}
-          >
-            <h3 className="vertical-timeline-element-title text-xl font-bold text-foreground">
-              Step 1: Sign Up
-            </h3>
-            <p className="text-muted-foreground mt-2">
-              Create your account to get started with the interview process.
-            </p>
-          </VerticalTimelineElement>
+    <section className="py-24 px-4 font-mainFont">
+      <div className="max-w-3xl mx-auto">
+        <motion.div
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className="text-3xl lg:text-5xl font-bold font-display mb-4">
+            How{" "}
+            <span
+              style={{
+                background: "linear-gradient(135deg, #60a5fa, #22d3ee)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              it works
+            </span>
+          </h2>
+          <p className="text-slate-400 text-lg">
+            From sign-up to actionable feedback in five steps.
+          </p>
+        </motion.div>
 
-          {/* Step 2 */}
-          <VerticalTimelineElement
-            className="vertical-timeline-element--work"
-            contentStyle={{
-              background: "hsl(var(--card))",
-              border: "1px solid hsl(var(--border))",
-              boxShadow:
-                "0 4px 15px -1px rgba(29, 78, 246, 0.6), 0 2px 8px -2px rgba(29, 78, 246, 0.6)",
-              borderRadius: "var(--radius)",
-              padding: "1.5rem",
-            }}
-            contentArrowStyle={{
-              borderRight: "7px solid hsl(var(--border))",
-            }}
-            iconStyle={{ background: "#f7b52d", color: "#fff" }}
-            icon={<FaClipboardList />}
-          >
-            <h3 className="vertical-timeline-element-title text-xl font-bold text-foreground">
-              Step 2: Create Meeting
-            </h3>
-            <p className="text-muted-foreground mt-2">
-              Schedule your interview session at a time that works best for you.
-            </p>
-          </VerticalTimelineElement>
+        <div className="relative">
+          {/* Vertical line */}
+          <div
+            className="absolute left-6 top-6 bottom-6 w-px hidden sm:block"
+            style={{ background: "linear-gradient(180deg, rgba(26,110,250,0.4), rgba(34,211,238,0.4))" }}
+          />
 
-          {/* Step 3 */}
-          <VerticalTimelineElement
-            className="vertical-timeline-element--work"
-            contentStyle={{
-              background: "hsl(var(--card))",
-              border: "1px solid hsl(var(--border))",
-              boxShadow:
-                "0 4px 15px -1px rgba(29, 78, 246, 0.6), 0 2px 8px -2px rgba(29, 78, 246, 0.6)",
-              borderRadius: "var(--radius)",
-              padding: "1.5rem",
-            }}
-            contentArrowStyle={{
-              borderRight: "7px solid hsl(var(--border))",
-            }}
-            iconStyle={{ background: "#ff6f6f", color: "#fff" }}
-            icon={<FaVideo />}
-          >
-            <h3 className="vertical-timeline-element-title text-xl font-bold text-foreground">
-              Step 3: Attend Interview
-            </h3>
-            <p className="text-muted-foreground mt-2">
-              Join the virtual interview with your recruiter or panel members.
-            </p>
-          </VerticalTimelineElement>
+          <div className="space-y-4">
+            {steps.map((step, i) => {
+              const Icon = step.icon;
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.45, delay: i * 0.1 }}
+                  className="flex gap-5 group"
+                >
+                  {/* Icon node */}
+                  <div className="relative flex-shrink-0 hidden sm:flex flex-col items-center">
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center z-10 transition-all duration-300 group-hover:scale-110"
+                      style={{
+                        background: `${step.color}15`,
+                        border: `1px solid ${step.color}30`,
+                        boxShadow: `0 0 16px ${step.color}20`,
+                      }}
+                    >
+                      <Icon size={18} style={{ color: step.color }} />
+                    </div>
+                  </div>
 
-          {/* Step 4 */}
-          <VerticalTimelineElement
-            className="vertical-timeline-element--work"
-            contentStyle={{
-              background: "hsl(var(--card))",
-              border: "1px solid hsl(var(--border))",
-              boxShadow:
-                "0 4px 15px -1px rgba(29, 78, 246, 0.6), 0 2px 8px -2px rgba(29, 78, 246, 0.6)",
-              padding: "1.5rem",
-            }}
-            contentArrowStyle={{
-              borderRight: "7px solid hsl(var(--border))",
-            }}
-            iconStyle={{ background: "#4caf50", color: "#fff" }}
-            icon={<FaChartLine />}
-          >
-            <h3 className="vertical-timeline-element-title text-xl font-bold text-foreground">
-              Step 4: Review Results
-            </h3>
-            <p className="text-muted-foreground mt-2">
-              Get insights into your interview performance and next steps.
-            </p>
-          </VerticalTimelineElement>
-
-          {/* Step 5 */}
-          <VerticalTimelineElement
-            className="vertical-timeline-element--work"
-            contentStyle={{
-              background: "hsl(var(--card))",
-              border: "1px solid hsl(var(--border))",
-              boxShadow:
-                "0 4px 15px -1px rgba(29, 78, 246, 0.6), 0 2px 8px -2px rgba(29, 78, 246, 0.6)",
-              borderRadius: "var(--radius)",
-              padding: "1.5rem",
-            }}
-            contentArrowStyle={{
-              borderRight: "7px solid hsl(var(--border))",
-            }}
-            iconStyle={{ background: "#7952b3", color: "#fff" }}
-            icon={<FaComments />}
-          >
-            <h3 className="vertical-timeline-element-title text-xl font-bold text-foreground">
-              Step 5: Receive Feedback
-            </h3>
-            <p className="text-muted-foreground mt-2">
-              Access detailed feedback to improve for future opportunities.
-            </p>
-          </VerticalTimelineElement>
-        </VerticalTimeline>
+                  {/* Card */}
+                  <div
+                    className="flex-1 rounded-2xl p-5 transition-all duration-200 group-hover:-translate-y-0.5 mb-0"
+                    style={{
+                      background: "rgba(13, 20, 37, 0.7)",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.border = `1px solid ${step.color}25`;
+                      e.currentTarget.style.boxShadow = `0 0 20px ${step.color}10`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.border = "1px solid rgba(255,255,255,0.06)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      {/* Mobile icon */}
+                      <div
+                        className="w-8 h-8 rounded-lg flex items-center justify-center sm:hidden flex-shrink-0"
+                        style={{ background: `${step.color}15`, border: `1px solid ${step.color}30` }}
+                      >
+                        <Icon size={14} style={{ color: step.color }} />
+                      </div>
+                      <div>
+                        <span
+                          className="text-xs font-mono uppercase tracking-widest"
+                          style={{ color: step.color }}
+                        >
+                          Step {i + 1} — {step.label}
+                        </span>
+                      </div>
+                    </div>
+                    <h3 className="text-white font-semibold text-sm font-display mb-1">
+                      {step.title}
+                    </h3>
+                    <p className="text-slate-400 text-sm leading-relaxed">{step.description}</p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </section>
   );
