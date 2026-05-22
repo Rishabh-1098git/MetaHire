@@ -18,13 +18,13 @@ connectDB();
 
 
 // Middleware
-app.use(cors());
 app.use(cors({
-  origin: ['https://metahire.vercel.app', 'http://localhost:3000'], // Add your frontend URLs
+  origin: ['https://metahire.vercel.app', 'http://localhost:5173', 'http://localhost:3000'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  credentials: true,
 }));
+app.options('*', cors());
 
 
 app.use(express.json());
