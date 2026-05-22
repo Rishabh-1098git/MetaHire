@@ -1,33 +1,41 @@
 .app-container {
-    position: relative;
-    min-height: 100vh;
-  }
-  
-  .grid-background {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-    background-size: 50px 50px;
-    pointer-events: none;
-    z-index: -10;
-  }
-  
-  .grid-background::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, transparent, rgba(0, 0, 0, 0.9));
-    z-index: -10;
-  }
-  
-  .content-container {
-    position: relative;
-    z-index: 1;
-  }
+  position: relative;
+  min-height: 100vh;
+}
+
+.grid-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(rgba(26, 110, 250, 0.12) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+  z-index: -10;
+}
+
+.grid-background::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(26, 110, 250, 0.1), transparent 70%);
+}
+
+.grid-background::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(ellipse 60% 40% at 80% 110%, rgba(0, 212, 255, 0.05), transparent 60%);
+}
+
+.content-container {
+  position: relative;
+  z-index: 1;
+}
