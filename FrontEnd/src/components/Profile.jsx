@@ -12,12 +12,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Pencil } from "lucide-react";
-import { Separator } from "./ui/separator";
+import { Pencil, Camera, Mail, FileText, Code2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { FourSquare } from "react-loading-indicators";
-const Profile = () => {
+import { getCachedUser, setCachedUser } from "@/lib/userCache";
+
+const Profile = ({ onNavigate }) => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -25,207 +25,243 @@ const Profile = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const [editedProfile, setEditedProfile] = useState(null);
-  const [profileImage, setProfileImage] = useState(null);
   const navigate = useNavigate();
 
-  // Fetch profile data
   useEffect(() => {
-    const fetchProfileData = async () => {
+    const load = async () => {
+      const cached = getCachedUser();
+      if (cached) {
+        setUserData(cached);
+        setEditedProfile(cached);
+        setLoading(false);
+        return;
+      }
       try {
         const token = localStorage.getItem("token");
         const { data } = await axios.get(
           `${import.meta.env.VITE_REACT_APP_BASE_URL}/api/auth/profile`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
+        setCachedUser(data);
         setUserData(data);
         setEditedProfile(data);
-      } catch (error) {
+      } catch {
         navigate("/signingsignup");
       } finally {
         setLoading(false);
       }
     };
-
-    fetchProfileData();
+    load();
   }, []);
 
   const handleSaveChanges = async (updatedProfile) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.put(
+      const { name, email, bio, skills, photoUrl } = updatedProfile;
+      await axios.put(
         `${import.meta.env.VITE_REACT_APP_BASE_URL}/api/auth/profile`,
-        updatedProfile,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { name, email, bio, skills, photoUrl },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      setUserData((prevUserData) => ({
-        ...prevUserData,
-        ...updatedProfile,
-      }));
-
+      const merged = { ...userData, name, email, bio, skills, photoUrl };
+      setUserData(merged);
+      setCachedUser(merged);
       setIsEditModalOpen(false);
-    } catch (error) {
-      console.error(
-        "Error saving profile data:",
-        error.response ? error.response.data : error
-      );
+    } catch (err) {
+      console.error("Error saving profile:", err);
       setError("Error saving profile data.");
     }
   };
 
   const handlePhotoUpload = async (file) => {
     if (!file) return;
-
     setUploadingPhoto(true);
     const formData = new FormData();
     formData.append("photo", file);
-
     try {
       const { data } = await axios.post(
         `${import.meta.env.VITE_REACT_APP_BASE_URL}/upload-photo`,
         formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
-
-      const updatedProfile = {
-        ...editedProfile,
-        photoUrl: data.data.path,
-      };
-
-      // First update the local state
-      setEditedProfile(updatedProfile);
-      setUserData(updatedProfile);
-
-      // Then save to backend
-      await handleSaveChanges(updatedProfile);
-
-      setProfileImage(null);
+      const updated = { ...editedProfile, photoUrl: data.data.path };
+      setEditedProfile(updated);
+      await handleSaveChanges(updated);
       setIsImageDialogOpen(false);
-    } catch (error) {
-      console.error(
-        "Error uploading photo:",
-        error.response ? error.response.data : error
-      );
+    } catch (err) {
+      console.error("Error uploading photo:", err);
     } finally {
       setUploadingPhoto(false);
     }
   };
 
-  // Handle profile image change
-  const handleProfileImageChange = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setProfileImage(file);
-      await handlePhotoUpload(file);
-    }
-  };
+  if (loading) return (
+    <div className="flex items-center justify-center h-64">
+      <FourSquare color="#6366F1" size="medium" text="" textColor="" />
+    </div>
+  );
+  if (error) return <div className="text-red-400 text-sm p-4">{error}</div>;
 
-  if (loading)
-    return (
-      <div>
-        <FourSquare color="#2563EB" size="medium" text="" textColor="" />
-      </div>
-    );
-  if (error) return <div>{error}</div>;
+  const getInitial = (name) => (name ? name.charAt(0).toUpperCase() : "U");
+  const sessions = userData?.feedbacks?.length || 0;
 
   return (
-    <Card className="w-full h-full mx-auto bg-black font-mainFont mb-10">
-      <CardHeader>
-        <CardTitle className="flex justify-between items-center">
-          My Profile
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setIsEditModalOpen(true)}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <Separator />
-          <div className="flex items-center space-x-4 relative">
-            <div className="w-44 h-44 bg-gray-800 rounded-full flex items-center justify-center text-white text-3xl relative group">
-              {uploadingPhoto ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full">
-                  <Atom color="#ffffff" size="medium" />
+    <div className="w-full font-mainFont space-y-4">
+
+      {/* Identity card */}
+      <div
+        className="rounded-2xl p-6"
+        style={{ background: "hsl(var(--card))", border: "1px solid rgba(255,255,255,0.07)" }}
+      >
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-5">
+            <div className="relative group flex-shrink-0">
+              <div
+                className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center text-2xl font-bold cursor-pointer"
+                style={{
+                  background: uploadingPhoto || !userData?.photoUrl
+                    ? "rgba(99,102,241,0.15)"
+                    : "transparent",
+                  border: "2px solid rgba(99,102,241,0.35)",
+                }}
+                onClick={() => setIsImageDialogOpen(true)}
+              >
+                {uploadingPhoto ? (
+                  <Atom color="#818cf8" size="small" />
+                ) : userData?.photoUrl ? (
+                  <img src={userData.photoUrl} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-indigo-400">{getInitial(userData?.name)}</span>
+                )}
+                <div className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Camera size={16} className="text-white" />
                 </div>
-              ) : (
-                <>
-                  {userData?.photoUrl ? (
-                    <img
-                      src={userData.photoUrl}
-                      alt="Profile"
-                      className="w-full h-full object-cover rounded-full"
-                    />
-                  ) : (
-                    userData?.name?.[0] || "U"
-                  )}
-                  <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Pencil
-                      className="h-8 w-8 text-white cursor-pointer"
-                      onClick={() => setIsImageDialogOpen(true)}
-                    />
-                  </div>
-                </>
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-xl font-semibold text-white font-display leading-tight">
+                {userData?.name || "Anonymous User"}
+              </h2>
+              <p className="text-sm text-slate-400 flex items-center gap-1.5 mt-1">
+                <Mail size={12} />
+                {userData?.email}
+              </p>
+              {sessions > 0 && (
+                <p className="text-xs text-slate-500 mt-1.5">
+                  {sessions} interview session{sessions !== 1 ? "s" : ""} completed
+                </p>
               )}
             </div>
-            <div>
-              <h2 className="text-xl font-bold">{userData?.name}</h2>
-              <p className="text-muted-foreground">{userData?.email}</p>
-            </div>
           </div>
-          <Separator />
-          <div className="space-y-2">
-            <h3 className="font-semibold text-xl">Bio</h3>
-            <p>{userData?.bio}</p>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditModalOpen(true)}
+            className="border-white/10 text-slate-300 hover:text-white hover:bg-white/[0.06] text-xs gap-1.5"
+          >
+            <Pencil size={11} />
+            Edit
+          </Button>
+        </div>
+      </div>
+
+      {/* Bio */}
+      {userData?.bio ? (
+        <div
+          className="rounded-xl p-5"
+          style={{ background: "hsl(var(--card))", border: "1px solid rgba(255,255,255,0.07)" }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <FileText size={13} className="text-indigo-400" />
+            <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Bio</span>
           </div>
-          <Separator />
-          <div className="space-y-2">
-            <h3 className="font-semibold text-xl">Skills</h3>
-            <div className="flex flex-wrap gap-2">
-              {userData?.skills?.map((skill) => (
-                <span
-                  key={skill}
-                  className="bg-black text-secondary-foreground px-2 py-1 rounded-md text-sm"
-                >
-                  {skill}
-                </span>
-              ))}
-            </div>
+          <p className="text-sm text-slate-400 leading-relaxed">{userData.bio}</p>
+        </div>
+      ) : (
+        <div
+          className="rounded-xl p-5 border-dashed"
+          style={{ background: "rgba(99,102,241,0.04)", border: "1px dashed rgba(99,102,241,0.2)" }}
+        >
+          <p className="text-xs text-slate-500 text-center">
+            No bio yet —{" "}
+            <button
+              onClick={() => setIsEditModalOpen(true)}
+              className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2 transition-colors"
+            >
+              add one
+            </button>
+          </p>
+        </div>
+      )}
+
+      {/* Skills */}
+      {userData?.skills && userData.skills.length > 0 ? (
+        <div
+          className="rounded-xl p-5"
+          style={{ background: "hsl(var(--card))", border: "1px solid rgba(255,255,255,0.07)" }}
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <Code2 size={13} className="text-cyan-400" />
+            <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Skills</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {userData.skills.map((skill) => (
+              <span
+                key={skill}
+                className="text-xs px-3 py-1 rounded-full font-medium"
+                style={{
+                  background: "rgba(99,102,241,0.1)",
+                  border: "1px solid rgba(99,102,241,0.22)",
+                  color: "#a5b4fc",
+                }}
+              >
+                {skill}
+              </span>
+            ))}
           </div>
         </div>
-      </CardContent>
+      ) : (
+        <div
+          className="rounded-xl p-5 border-dashed"
+          style={{ background: "rgba(34,211,238,0.04)", border: "1px dashed rgba(34,211,238,0.15)" }}
+        >
+          <p className="text-xs text-slate-500 text-center">
+            No skills listed —{" "}
+            <button
+              onClick={() => setIsEditModalOpen(true)}
+              className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors"
+            >
+              add skills
+            </button>
+          </p>
+        </div>
+      )}
 
-      {/* Profile Image Dialog */}
+      {/* Photo dialog */}
       <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
-        <DialogContent className="max-w-md bg-black bg-opacity-90 border-white">
+        <DialogContent
+          className="max-w-sm"
+          style={{ background: "rgba(10,14,26,0.98)", border: "1px solid rgba(99,102,241,0.22)" }}
+        >
           <DialogHeader>
-            <DialogTitle>Update Profile Image</DialogTitle>
-            <DialogDescription>
-              Select an image file to update your profile picture.
-            </DialogDescription>
+            <DialogTitle className="text-white font-display">Update Profile Photo</DialogTitle>
+            <DialogDescription className="text-slate-400">Select an image file.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <Input
               type="file"
               accept="image/*"
-              onChange={handleProfileImageChange}
-              className="bg-black text-white"
+              onChange={(e) => { const f = e.target.files[0]; if (f) handlePhotoUpload(f); }}
+              className="bg-white/[0.04] border-white/10 text-white"
               disabled={uploadingPhoto}
             />
             <Button
               onClick={() => setIsImageDialogOpen(false)}
               disabled={uploadingPhoto}
+              variant="outline"
+              className="border-white/10 text-slate-300"
             >
               Cancel
             </Button>
@@ -233,85 +269,65 @@ const Profile = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Profile Dialog */}
+      {/* Edit dialog */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-2xl bg-black bg-opacity-90 border-white">
+        <DialogContent
+          className="max-w-lg"
+          style={{ background: "rgba(10,14,26,0.98)", border: "1px solid rgba(99,102,241,0.22)" }}
+        >
           <DialogHeader>
-            <DialogTitle>Edit Profile</DialogTitle>
-            <DialogDescription>
-              Update your profile information
-            </DialogDescription>
+            <DialogTitle className="text-white font-display">Edit Profile</DialogTitle>
+            <DialogDescription className="text-slate-400">Update your profile information.</DialogDescription>
           </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Name</Label>
-              <Input
-                value={editedProfile?.name}
-                onChange={(e) =>
-                  setEditedProfile((prev) => ({
-                    ...prev,
-                    name: e.target.value,
-                  }))
-                }
-                className="bg-black"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <Input
-                value={editedProfile?.email}
-                onChange={(e) =>
-                  setEditedProfile((prev) => ({
-                    ...prev,
-                    email: e.target.value,
-                  }))
-                }
-                className="bg-black"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Bio</Label>
+          <div className="space-y-4 mt-2">
+            {[
+              { label: "Name", key: "name", placeholder: "Your name" },
+              { label: "Email", key: "email", placeholder: "your@email.com" },
+            ].map(({ label, key, placeholder }) => (
+              <div key={key} className="space-y-1.5">
+                <Label className="text-slate-300 text-sm">{label}</Label>
+                <Input
+                  value={editedProfile?.[key] || ""}
+                  onChange={(e) => setEditedProfile((p) => ({ ...p, [key]: e.target.value }))}
+                  placeholder={placeholder}
+                  className="bg-white/[0.04] border-white/10 text-white placeholder:text-slate-600 h-10 focus:border-indigo-500/50"
+                />
+              </div>
+            ))}
+            <div className="space-y-1.5">
+              <Label className="text-slate-300 text-sm">Bio</Label>
               <Textarea
-                value={editedProfile?.bio}
-                onChange={(e) =>
-                  setEditedProfile((prev) => ({
-                    ...prev,
-                    bio: e.target.value,
-                  }))
-                }
-                className="bg-black"
+                value={editedProfile?.bio || ""}
+                onChange={(e) => setEditedProfile((p) => ({ ...p, bio: e.target.value }))}
+                className="bg-white/[0.04] border-white/10 text-white placeholder:text-slate-600 focus:border-indigo-500/50 resize-none"
+                rows={3}
               />
             </div>
-
-            <div className="space-y-2">
-              <Label>Skills</Label>
+            <div className="space-y-1.5">
+              <Label className="text-slate-300 text-sm">Skills (comma-separated)</Label>
               <Input
-                value={editedProfile?.skills?.join(", ")}
+                value={editedProfile?.skills?.join(", ") || ""}
                 onChange={(e) =>
-                  setEditedProfile((prev) => ({
-                    ...prev,
-                    skills: e.target.value
-                      .split(",")
-                      .map((skill) => skill.trim()),
+                  setEditedProfile((p) => ({
+                    ...p,
+                    skills: e.target.value.split(",").map((s) => s.trim()).filter(Boolean),
                   }))
                 }
-                placeholder="Enter skills separated by comma"
-                className="bg-black"
+                placeholder="React, Node.js, Python..."
+                className="bg-white/[0.04] border-white/10 text-white placeholder:text-slate-600 h-10 focus:border-indigo-500/50"
               />
             </div>
-
-            <div className="space-y-2">
-              <Button onClick={() => handleSaveChanges(editedProfile)}>
-                Save Changes
-              </Button>
-            </div>
+            <Button
+              onClick={() => handleSaveChanges(editedProfile)}
+              className="w-full h-10 font-medium text-white"
+              style={{ background: "linear-gradient(135deg, #6366F1, #8B5CF6)" }}
+            >
+              Save changes
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
-    </Card>
+    </div>
   );
 };
 
