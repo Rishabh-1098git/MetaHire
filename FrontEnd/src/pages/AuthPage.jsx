@@ -8,10 +8,15 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { useGoogleLogin } from "@react-oauth/google";
 
 const AuthPage = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [isVerification, setIsVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [resendTimer, setResendTimer] = useState(0);
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [forgotEmail, setForgotEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,11 +25,30 @@ const AuthPage = () => {
   const toggleMode = () => {
     setIsSignUp((prev) => !prev);
     setIsForgotPassword(false);
+    setIsVerification(false);
   };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
+  const startResendTimer = () => {
+    setResendTimer(60);
+  };
+
+  React.useEffect(() => {
+    let interval = null;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    } else {
+      if (interval) clearInterval(interval);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [resendTimer]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,13 +59,64 @@ const AuthPage = () => {
         `${import.meta.env.VITE_REACT_APP_BASE_URL}${url}`,
         formData
       );
+      if (isSignUp) {
+        toast("Verification code sent to your email!");
+        setVerificationEmail(formData.email);
+        setIsVerification(true);
+        startResendTimer();
+      } else {
+        localStorage.setItem("token", data.token);
+        toast("Logged in successfully!");
+        setTimeout(() => navigate("/admin"), 500);
+      }
+    } catch (error) {
+      if (!isSignUp && error.response?.status === 403 && error.response?.data?.isNotVerified) {
+        toast(error.response.data.message);
+        setVerificationEmail(error.response.data.email);
+        setIsVerification(true);
+        startResendTimer();
+      } else {
+        toast(error.response?.data?.message || "An error occurred", {
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_REACT_APP_BASE_URL}/api/auth/verify-otp`,
+        { email: verificationEmail, otp }
+      );
       localStorage.setItem("token", data.token);
-      toast(isSignUp ? "Account created successfully!" : "Logged in successfully!");
+      toast("Email verified and logged in successfully!");
+      setIsVerification(false);
+      setOtp("");
       setTimeout(() => navigate("/admin"), 500);
     } catch (error) {
-      toast(error.response?.data?.message || "An error occurred", {
-        variant: "destructive",
-      });
+      toast.error(error.response?.data?.message || "Verification failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendTimer > 0) return;
+    setLoading(true);
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_REACT_APP_BASE_URL}/api/auth/resend-otp`,
+        { email: verificationEmail }
+      );
+      toast("Verification code resent successfully!");
+      startResendTimer();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to resend code");
     } finally {
       setLoading(false);
     }
@@ -65,17 +140,39 @@ const AuthPage = () => {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    toast("Sign in with Google coming soon!");
-  };
+  const handleGoogleSignIn = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setLoading(true);
+      try {
+        const { data } = await axios.post(
+          `${import.meta.env.VITE_REACT_APP_BASE_URL}/api/auth/google`,
+          { token: tokenResponse.access_token }
+        );
+        localStorage.setItem("token", data.token);
+        toast("Logged in successfully with Google!");
+        setTimeout(() => navigate("/admin"), 500);
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Google authentication failed");
+      } finally {
+        setLoading(false);
+      }
+    },
+    onError: () => {
+      toast.error("Google login failed");
+    }
+  });
 
-  const title = isForgotPassword
+  const title = isVerification
+    ? "Verify email"
+    : isForgotPassword
     ? "Reset password"
     : isSignUp
     ? "Create account"
     : "Welcome back";
 
-  const subtitle = isForgotPassword
+  const subtitle = isVerification
+    ? `Enter the 6-digit code sent to ${verificationEmail}`
+    : isForgotPassword
     ? "Enter your email and we'll send a reset link"
     : isSignUp
     ? "Start your AI interview journey today"
@@ -145,7 +242,64 @@ const AuthPage = () => {
           </div>
 
           <AnimatePresence mode="wait">
-            {isForgotPassword ? (
+            {isVerification ? (
+              <motion.form
+                key="verification"
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -16 }}
+                transition={{ duration: 0.2 }}
+                onSubmit={handleVerifyOtp}
+                className="space-y-4"
+              >
+                <div className="space-y-2">
+                  <Label htmlFor="otp" className="text-slate-300 text-sm">
+                    Verification Code
+                  </Label>
+                  <Input
+                    id="otp"
+                    type="text"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="Enter 6-digit code"
+                    required
+                    className="bg-white/[0.04] border-white/10 text-white text-center text-lg tracking-widest placeholder:text-slate-600 focus:border-blue-500/50 focus:ring-blue-500/20 h-11"
+                  />
+                </div>
+                <Button
+                  disabled={loading || otp.length !== 6}
+                  type="submit"
+                  className="w-full h-11 font-medium"
+                  style={{ background: "linear-gradient(135deg, #1A6EFA, #0ea5e9)" }}
+                >
+                  {loading ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Verifying...</>
+                  ) : (
+                    "Verify email"
+                  )}
+                </Button>
+                <div className="text-center text-sm">
+                  {resendTimer > 0 ? (
+                    <p className="text-slate-500">Resend code in {resendTimer}s</p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleResendOtp}
+                      className="text-blue-400 hover:text-blue-300 transition-colors"
+                    >
+                      Resend code
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsVerification(false)}
+                  className="w-full text-sm text-slate-400 hover:text-white transition-colors py-2"
+                >
+                  ← Back to sign in
+                </button>
+              </motion.form>
+            ) : isForgotPassword ? (
               <motion.form
                 key="forgot"
                 initial={{ opacity: 0, x: 16 }}
@@ -272,7 +426,7 @@ const AuthPage = () => {
 
                 <button
                   type="button"
-                  onClick={handleGoogleSignIn}
+                  onClick={() => handleGoogleSignIn()}
                   className="w-full flex items-center justify-center gap-2 h-11 rounded-lg border border-white/10 text-sm text-slate-300 hover:bg-white/[0.04] hover:text-white transition-all duration-150"
                 >
                   <FcGoogle size={18} />
@@ -282,7 +436,7 @@ const AuthPage = () => {
             )}
           </AnimatePresence>
 
-          {!isForgotPassword && (
+          {!isForgotPassword && !isVerification && (
             <p className="text-center text-sm text-slate-500 mt-6">
               {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
               <button

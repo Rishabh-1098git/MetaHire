@@ -22,7 +22,16 @@ const feedbacksSchema = new mongoose.Schema({
 const userSchema = new mongoose.Schema({
   photoUrl: { type: String, default: "" },
   email: { type: String, required: true, unique: true, match: [/\S+@\S+\.\S+/, 'Please enter a valid email'] },
-  password: { type: String, required: true },
+  password: {
+    type: String,
+    required: function() {
+      return !this.googleId;
+    }
+  },
+  googleId: { type: String, unique: true, sparse: true },
+  isVerified: { type: Boolean, default: false },
+  verificationOtp: { type: String },
+  verificationOtpExpires: { type: Date },
   name: { type: String, default: "" },
   bio: { type: String, default: "" },
   skills: { type: [String], default: [] },
@@ -31,7 +40,7 @@ const userSchema = new mongoose.Schema({
 
 // Hash the password before saving
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password') || !this.password) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
