@@ -5,11 +5,11 @@ const { request } = require('express');
 const protect = async (req, res, next) => {
   let token;
 
-  // Check if the Authorization header contains a Bearer token
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  const authHeader = req.headers.authorization;
+
+  if (authHeader && /^Bearer\s+/i.test(authHeader)) {
     try {
-      // Extract the token from the Authorization header
-      token = req.headers.authorization.split(' ')[1];
+      token = authHeader.split(' ')[1];
 
       // Verify the token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);

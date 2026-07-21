@@ -2,7 +2,7 @@ import React, { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./components/theme-provider";
 import { Atom } from "react-loading-indicators";
-import ProtectedRoute from "./components/ProtectedRoute ";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { Toaster } from "sonner";
 import Feedback from "./pages/Feedback";
 const Home = lazy(() => import("./pages/Home"));
