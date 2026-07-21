@@ -6,16 +6,15 @@ const ProtectedRoute = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-
-    if (token) {
-      setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
-    }
+    setIsAuthenticated(Boolean(token));
   }, []);
 
-  if (isAuthenticated === false) {
-    return <Navigate to="/signingsignup" />;
+  if (isAuthenticated === null) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/signingsignup" replace />;
   }
 
   return children;
