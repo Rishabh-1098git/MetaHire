@@ -281,3 +281,4 @@ These are visible from a code scan and worth discussing before the next iteratio
 ## License
 
 ISC (per `Backend/package.json`). Frontend is unlicensed in `FrontEnd/package.json`.
+\n<!-- test PR validation checks -->
