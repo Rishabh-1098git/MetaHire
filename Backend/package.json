@@ -5,7 +5,11 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+<<<<<<< HEAD
     "test": "tap --disable-coverage test/**/*.test.js"
+=======
+    "test": "tap test/**/*.test.js"
+>>>>>>> 6ea7439 (Add backend tests and update PR validation workflow)
   },
   "author": "",
   "license": "ISC",
