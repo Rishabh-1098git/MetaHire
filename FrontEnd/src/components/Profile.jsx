@@ -16,6 +16,8 @@ import { Pencil, Camera, Mail, FileText, Code2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { FourSquare } from "react-loading-indicators";
 import { getCachedUser, setCachedUser } from "@/lib/userCache";
+import extractResumeText from "@/lib/resumeParser";
+import { extractTopSkills } from "@/lib/skillExtractor";
 
 const Profile = ({ onNavigate }) => {
   const [userData, setUserData] = useState(null);
@@ -25,6 +27,8 @@ const Profile = ({ onNavigate }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const [editedProfile, setEditedProfile] = useState(null);
+  const [resumeUploading, setResumeUploading] = useState(false);
+  const [resumeName, setResumeName] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -304,7 +308,7 @@ const Profile = ({ onNavigate }) => {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-slate-300 text-sm">Skills (comma-separated)</Label>
+              <Label className="text-slate-300 text-sm">Skills</Label>
               <Input
                 value={editedProfile?.skills?.join(", ") || ""}
                 onChange={(e) =>
@@ -316,11 +320,47 @@ const Profile = ({ onNavigate }) => {
                 placeholder="React, Node.js, Python..."
                 className="bg-white/[0.04] border-white/10 text-white placeholder:text-slate-600 h-10 focus:border-indigo-500/50"
               />
+              <div className="text-xs text-slate-400">Autofill skills with your resume</div>
+              <div className="flex items-center gap-3 mt-2">
+                <Input
+                  type="file"
+                  accept=".pdf"
+                  onChange={async (e) => {
+                    const file = e.target.files && e.target.files[0];
+                    if (!file) return;
+                    setResumeUploading(true);
+                    setResumeName(file.name);
+                    try {
+                      const text = await extractResumeText(file);
+                      const skills = extractTopSkills(text);
+                      if (skills && skills.length > 0) {
+                        setEditedProfile((p) => ({ ...p, skills }));
+                      }
+                    } catch (err) {
+                      console.error("Resume parse failed:", err);
+                    } finally {
+                      setResumeUploading(false);
+                    }
+                  }}
+                  className="bg-white/[0.04] border-white/10 text-white placeholder:text-slate-600 h-10"
+                />
+                <div className="text-xs text-slate-400 flex items-center gap-2">
+                  {resumeUploading ? (
+                    <>
+                      <Atom color="#818cf8" size="small" />
+                      <span>Parsing resume...</span>
+                    </>
+                  ) : (
+                    <span>{resumeName}</span>
+                  )}
+                </div>
+              </div>
             </div>
             <Button
               onClick={() => handleSaveChanges(editedProfile)}
               className="w-full h-10 font-medium text-white"
               style={{ background: "linear-gradient(135deg, #6366F1, #8B5CF6)" }}
+              disabled={resumeUploading}
             >
               Save changes
             </Button>
