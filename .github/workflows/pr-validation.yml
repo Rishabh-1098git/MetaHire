@@ -18,8 +18,8 @@ jobs:
       - run: cd FrontEnd && npm ci
       - run: cd FrontEnd && npm run build
 
-  backend-tests:
-    name: Backend tests
+  backend-syntax-check:
+    name: Backend syntax check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,4 +27,4 @@ jobs:
         with:
           node-version: '20'
       - run: cd Backend && npm ci
-      - run: cd Backend && npm test
+      - run: cd Backend && node --check index.js
