@@ -16,6 +16,9 @@ const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 };
 
+exports.hashPassword = hashPassword;
+exports.generateToken = generateToken;
+
 // Register a new user
 exports.registerUser = async (req, res) => {
   const { email, password } = req.body;
