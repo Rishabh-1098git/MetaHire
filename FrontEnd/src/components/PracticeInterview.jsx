@@ -1,17 +1,10 @@
 import React, { useState } from "react";
-import { useForm, Controller } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -19,9 +12,17 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Loader2, Upload, ArrowRight, CheckCircle2 } from "lucide-react";
-import pdfToText from "react-pdftotext";
-import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Loader2, Upload, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
+import { toast } from "sonner";
+import { extractResumeText } from "@/lib/resumeParser";
+import { buildInterviewPrompt, extractResumeInsights } from "@/lib/interviewSetup";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -29,100 +30,16 @@ import {
 } from "@/components/ui/resizable";
 
 const InterviewSetup = () => {
-  const [uploadedResume, setUploadedResume] = useState("");
+  const [role, setRole] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
   const [resumeText, setResumeText] = useState("");
+  const [uploadedResume, setUploadedResume] = useState("");
+  const [insights, setInsights] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const roles = ["Software Engineer", "Data Scientist", "Product Manager", "DevOps Engineer", "UI/UX Designer"];
-  const levels = ["Fresher", "Junior", "Mid-Level", "Senior", "Lead"];
-  const companies = ["Google", "Microsoft", "Amazon", "Meta", "Apple", "Netflix"];
-  const technologies = ["JavaScript", "Python", "Java", "React", "Node.js", "SQL", "AWS", "Docker", "Kubernetes"];
-
-  const { control, handleSubmit, setValue, formState: { errors } } = useForm({
-    defaultValues: { role: "", level: "", experience: "", technologies: [], targetCompany: "", resume: null },
-  });
-
   const navigate = useNavigate();
-
-  const renderSelectedTechnologies = (selected) => {
-    if (!selected || selected.length === 0) return "Select technologies";
-    return (
-      <div className="flex flex-wrap gap-1">
-        {selected.map((tech) => (
-          <Badge key={tech} variant="secondary" className="text-xs bg-indigo-500/10 text-indigo-300 border-indigo-500/20">
-            {tech}
-          </Badge>
-        ))}
-      </div>
-    );
-  };
-
-  function extractText(file) {
-    setLoading(true);
-    pdfToText(file)
-      .then((text) => { setResumeText(text); setLoading(false); })
-      .catch(() => { alert("Failed to extract text from PDF. Please try again."); setLoading(false); });
-  }
-
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setUploadedResume(file.name);
-      setValue("resume", file);
-      if (file.name.split(".").pop().toLowerCase() === "pdf") extractText(file);
-      else alert("Unsupported file format. Please upload a PDF.");
-    }
-  };
-
-  const onSubmit = async (data) => {
-    if (!resumeText) { alert("Please upload and extract resume text before proceeding."); return; }
-    setLoading(true);
-    try {
-      const prompt = `Generate 10 interview questions for the following details in the format of a single string separated by '|':
-  - Role: ${data.role}
-  - Level: ${data.level}
-  - Experience: ${data.experience} years
-  - Technologies: ${data.technologies.join(", ")}
-  - Target Company: ${data.targetCompany}
-  - Resume Text: ${resumeText}
-
-Ensure the first 8 questions include a mix of behavioral, technical, and resume-related questions that are concise, relevant, and suitable for the specified role, level, and experience. For example, include questions like:
-- "Based on your resume, can you tell us about your experience with [specific technology or project]?"
-- "How did your experience with [specific skill/technology] contribute to the success of your previous projects?"
-- "Can you explain a challenging situation from your previous roles as described in your resume and how you overcame it?"
-
-The last 2 questions should be coding problems according to the level and experience with the following structure:
-
- Problem description: A concise explanation of the task.
- Input: Clearly defined input format.
- Output: Clearly defined output format.
- Example:
-   - Input: [example input]
-   - Output: [expected output]
-
-Return the output as a single string with each question separated by '|'.`;
-
-      const { data: responseData } = await axios.post(
-        `${import.meta.env.VITE_REACT_APP_BASE_URL}/api/gemini`,
-        { prompt }
-      );
-      const questions = responseData.questions;
-      if (questions && questions.length > 0) {
-        const interviewId = Math.random().toString(36).substring(2, 10);
-        navigate(`/admin/interview/${interviewId}`, {
-          state: { questions, interviewId, title: data.role, company: data.targetCompany },
-        });
-      } else {
-        alert("No questions generated. Please try again.");
-      }
-      setLoading(false);
-    } catch (error) {
-      setLoading(false);
-      console.error("Error fetching questions:", error);
-      alert("Failed to fetch interview questions. Please try again.");
-    }
-  };
 
   const instructions = [
     "Wear headphones for clear audio quality",
@@ -133,6 +50,69 @@ Return the output as a single string with each question separated by '|'.`;
     "Stable internet connection required",
   ];
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setLoading(true);
+      const text = await extractResumeText(file);
+      setResumeText(text);
+      setUploadedResume(file.name);
+      setInsights(extractResumeInsights(text, role, jobDescription));
+      toast("Resume parsed successfully. We’ll tailor the questions around it.");
+    } catch (error) {
+      console.error("Resume parse failed:", error);
+      toast.error("Unable to parse the resume. Please try again with a PDF file.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!role || !jobDescription.trim() || !resumeText) {
+      toast.error("Please choose a role, paste the job description, and upload a resume.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const prompt = buildInterviewPrompt({
+        role,
+        jobDescription,
+        resumeText,
+        insights: insights || extractResumeInsights(resumeText, role, jobDescription),
+      });
+
+      const { data: responseData } = await axios.post(
+        `${import.meta.env.VITE_REACT_APP_BASE_URL}/api/gemini`,
+        { prompt }
+      );
+
+      const questions = responseData.questions
+        .map((q) => q.trim())
+        .filter((q) => q.length > 0)
+        .slice(0, 10);
+
+      if (questions?.length) {
+        const interviewId = Math.random().toString(36).substring(2, 10);
+        navigate(`/admin/interview/${interviewId}`, {
+          state: { questions, interviewId, title: role, company: "Target Company" },
+        });
+      } else {
+        toast.error("No questions generated. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error fetching questions:", error);
+      toast.error("Failed to generate interview questions. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <ResizablePanelGroup
@@ -140,15 +120,18 @@ Return the output as a single string with each question separated by '|'.`;
         className="w-full rounded-2xl overflow-hidden"
         style={{ border: "1px solid rgba(99,102,241,0.12)", minHeight: "400px" }}
       >
-        {/* Left: CTA */}
         <ResizablePanel defaultSize={60}>
           <div className="flex flex-col h-full items-center justify-center p-8 text-center gap-6">
             <div>
+              <div className="flex items-center justify-center gap-2 text-indigo-400 mb-3">
+                <Sparkles size={18} />
+                <span className="text-sm uppercase tracking-[0.2em]">Resume-aware interview setup</span>
+              </div>
               <h1 className="font-display text-2xl sm:text-3xl font-bold text-white mb-3">
                 AI-Powered Mock Interviews
               </h1>
               <p className="text-slate-400 text-sm sm:text-base leading-relaxed max-w-sm mx-auto">
-                Upload your resume and get 10 personalized questions. Behavioral, technical, and coding — all tailored to your role and experience.
+                Choose your target role, paste the job description, upload your resume, and we’ll generate questions around the real match.
               </p>
             </div>
             <button
@@ -175,12 +158,8 @@ Return the output as a single string with each question separated by '|'.`;
 
         <ResizableHandle className="bg-white/[0.04] hover:bg-indigo-500/20 transition-colors" />
 
-        {/* Right: Instructions */}
         <ResizablePanel defaultSize={40}>
-          <div
-            className="h-full p-6"
-            style={{ borderLeft: "1px solid rgba(255,255,255,0.05)" }}
-          >
+          <div className="h-full p-6" style={{ borderLeft: "1px solid rgba(255,255,255,0.05)" }}>
             <h2 className="font-display text-sm font-semibold text-slate-300 uppercase tracking-widest mb-5">
               Instructions
             </h2>
@@ -192,14 +171,11 @@ Return the output as a single string with each question separated by '|'.`;
                 </li>
               ))}
             </ul>
-            <p className="mt-8 text-sm font-semibold text-indigo-400 font-mainFont">
-              Best of luck! 🚀
-            </p>
+            <p className="mt-8 text-sm font-semibold text-indigo-400 font-mainFont">Best of luck! 🚀</p>
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
 
-      {/* Setup Dialog */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent
           className="max-w-2xl"
@@ -211,123 +187,62 @@ Return the output as a single string with each question separated by '|'.`;
         >
           <DialogHeader>
             <DialogTitle className="font-display text-white text-xl">Configure Interview</DialogTitle>
-            <DialogDescription className="text-slate-400">
-              Customize your practice session
-            </DialogDescription>
+            <DialogDescription className="text-slate-400">Customize your practice session</DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-2">
+          <form onSubmit={onSubmit} className="space-y-4 mt-2">
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-slate-300 text-sm">Role</Label>
-                <Controller name="role" control={control} rules={{ required: true }}
-                  render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger className="bg-white/[0.04] border-white/10 text-white h-10">
-                        <SelectValue placeholder="Select role" />
-                      </SelectTrigger>
-                      <SelectContent style={{ background: "rgba(10,14,26,0.98)", border: "1px solid rgba(99,102,241,0.22)" }}>
-                        {roles.map((r) => <SelectItem key={r} value={r} className="text-slate-300 focus:bg-indigo-500/10 focus:text-white">{r}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
+                <Select value={role} onValueChange={setRole}>
+                  <SelectTrigger className="h-10 border-white/10 bg-white/[0.04] text-white placeholder:text-slate-500">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-950 border-white/10 text-slate-200">
+                    {roles.map((option) => (
+                      <SelectItem key={option} value={option} className="focus:bg-indigo-500/10 focus:text-white">
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+
               <div className="space-y-2">
-                <Label className="text-slate-300 text-sm">Level</Label>
-                <Controller name="level" control={control} rules={{ required: true }}
-                  render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger className="bg-white/[0.04] border-white/10 text-white h-10">
-                        <SelectValue placeholder="Select level" />
-                      </SelectTrigger>
-                      <SelectContent style={{ background: "rgba(10,14,26,0.98)", border: "1px solid rgba(99,102,241,0.22)" }}>
-                        {levels.map((l) => <SelectItem key={l} value={l} className="text-slate-300 focus:bg-indigo-500/10 focus:text-white">{l}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-slate-300 text-sm">Years of experience</Label>
-              <Controller name="experience" control={control} rules={{ required: true, min: 0 }}
-                render={({ field }) => (
-                  <Input type="number" placeholder="e.g. 3" {...field}
-                    className="bg-white/[0.04] border-white/10 text-white placeholder:text-slate-600 h-10 focus:border-indigo-500/50" />
-                )}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-slate-300 text-sm">Technologies</Label>
-              <Controller name="technologies" control={control} defaultValue={[]}
-                render={({ field }) => (
-                  <Select onValueChange={(value) => {
-                    const cur = field.value || [];
-                    field.onChange(cur.includes(value) ? cur.filter((t) => t !== value) : [...cur, value]);
-                  }}>
-                    <SelectTrigger className="bg-white/[0.04] border-white/10 text-white min-h-10">
-                      <SelectValue>{renderSelectedTechnologies(field.value)}</SelectValue>
-                    </SelectTrigger>
-                    <SelectContent style={{ background: "rgba(10,14,26,0.98)", border: "1px solid rgba(99,102,241,0.22)" }}>
-                      {technologies.map((tech) => (
-                        <SelectItem key={tech} value={tech} className="text-slate-300 focus:bg-indigo-500/10 focus:text-white">
-                          <div className="flex items-center gap-2">
-                            {tech}
-                            {field.value?.includes(tech) && <CheckCircle2 size={12} className="text-indigo-400" />}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-slate-300 text-sm">Target company</Label>
-              <Controller name="targetCompany" control={control} rules={{ required: true }}
-                render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger className="bg-white/[0.04] border-white/10 text-white h-10">
-                      <SelectValue placeholder="Select company" />
-                    </SelectTrigger>
-                    <SelectContent style={{ background: "rgba(10,14,26,0.98)", border: "1px solid rgba(99,102,241,0.22)" }}>
-                      {companies.map((c) => <SelectItem key={c} value={c} className="text-slate-300 focus:bg-indigo-500/10 focus:text-white">{c}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-slate-300 text-sm">Resume (PDF)</Label>
-              <div className="flex items-center gap-3">
-                <Input type="file" accept=".pdf" onChange={handleFileUpload} className="hidden" id="resume-upload" />
-                <Label
-                  htmlFor="resume-upload"
-                  className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 hover:text-white px-4 py-2 rounded-lg transition-colors"
-                  style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.22)" }}
-                >
+                <Label className="text-slate-300 text-sm">Resume (PDF)</Label>
+                <label className="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-indigo-500/20 bg-indigo-500/10 px-3 text-sm text-slate-200 transition hover:bg-indigo-500/20">
                   <Upload size={14} />
-                  {uploadedResume ? "Change file" : "Upload PDF"}
-                </Label>
-                {uploadedResume && (
-                  <span className="text-xs text-indigo-400 flex items-center gap-1">
-                    <CheckCircle2 size={12} /> {uploadedResume}
-                  </span>
-                )}
+                  {uploadedResume ? uploadedResume : "Upload PDF"}
+                  <Input type="file" accept=".pdf" className="hidden" onChange={handleFileUpload} />
+                </label>
               </div>
             </div>
 
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full h-11 font-medium mt-2 text-white"
-              style={{ background: "linear-gradient(135deg, #6366F1, #8B5CF6)" }}
-            >
+            <div className="space-y-2">
+              <Label className="text-slate-300 text-sm">Job description</Label>
+              <Textarea
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+                placeholder="Paste the job description you want to practice for..."
+                className="min-h-[140px] bg-white/[0.04] border-white/10 text-white placeholder:text-slate-600"
+              />
+            </div>
+
+            {insights && (
+              <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                <h3 className="text-sm font-medium text-white mb-2">Resume insights</h3>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {insights.skills?.map((skill) => (
+                    <span key={skill} className="rounded-full border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-1 text-xs text-indigo-200">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-sm text-slate-400">{insights.summary}</p>
+              </div>
+            )}
+
+            <Button type="submit" disabled={loading} className="w-full h-11 font-medium mt-2 text-white" style={{ background: "linear-gradient(135deg, #6366F1, #8B5CF6)" }}>
               {loading ? (
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Generating questions...</>
               ) : (
