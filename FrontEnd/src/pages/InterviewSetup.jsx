@@ -1,60 +1,23 @@
 import React, { useState } from "react";
-import { useForm, Controller } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import {
-  Box,
-  TextField,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
-  Button,
-  Chip,
-  OutlinedInput,
-  Typography,
-  Grid,
-} from "@mui/material";
-import { Upload } from "@mui/icons-material";
-import pdfToText from "react-pdftotext";
+import { motion } from "framer-motion";
+import { Loader2, Upload, Sparkles } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { extractResumeText } from "@/lib/resumeParser";
+import { buildInterviewPrompt, extractResumeInsights } from "@/lib/interviewSetup";
 
 const InterviewSetup = () => {
-  const [uploadedResume, setUploadedResume] = useState("");
+  const [role, setRole] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
   const [resumeText, setResumeText] = useState("");
+  const [uploadedResume, setUploadedResume] = useState("");
   const [loading, setLoading] = useState(false);
-
-  function extractText(file) {
-    setLoading(true);
-    pdfToText(file)
-      .then((text) => {
-        setResumeText(text);
-        console.log(text);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Failed to extract text from pdf");
-        alert("Failed to extract text from PDF. Please try again.");
-        setLoading(false);
-      });
-  }
-
-  const {
-    control,
-    handleSubmit,
-    setValue,
-    getValues,
-    formState: { errors },
-  } = useForm({
-    defaultValues: {
-      role: "",
-      level: "",
-      experience: "",
-      technologies: [],
-      targetCompany: "",
-      resume: "",
-    },
-  });
-
+  const [insights, setInsights] = useState(null);
   const navigate = useNavigate();
 
   const roles = [
@@ -65,75 +28,43 @@ const InterviewSetup = () => {
     "UI/UX Designer",
   ];
 
-  const levels = ["Fresher", "Junior", "Mid-Level", "Senior", "Lead"];
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const companies = [
-    "Google",
-    "Microsoft",
-    "Amazon",
-    "Meta",
-    "Apple",
-    "Netflix",
-  ];
-
-  const technologies = [
-    "JavaScript",
-    "Python",
-    "Java",
-    "React",
-    "Node.js",
-    "SQL",
-    "AWS",
-    "Docker",
-    "Kubernetes",
-  ];
-
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
+    try {
+      setLoading(true);
+      const text = await extractResumeText(file);
+      setResumeText(text);
       setUploadedResume(file.name);
-      setValue("resume", file);
-      const fileType = file.name.split(".").pop().toLowerCase();
-      if (fileType === "pdf") {
-        extractText(file);
-      } else {
-        alert("Unsupported file format. Please upload a PDF or Word document.");
-      }
+      const extractedInsights = extractResumeInsights(text, role, jobDescription);
+      setInsights(extractedInsights);
+      toast("Resume parsed successfully. We’ll tailor the interview around it.");
+    } catch (error) {
+      console.error("Resume parse failed:", error);
+      toast.error("Unable to parse the resume. Please try again with a PDF file.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const onSubmit = async (data) => {
-    if (!resumeText) {
-      alert("Please upload and extract resume text before proceeding.");
+  const onSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!role || !jobDescription.trim() || !resumeText) {
+      toast.error("Please choose a role, paste the job description, and upload a resume.");
       return;
     }
 
     setLoading(true);
 
     try {
-      const prompt = `Generate 10 interview questions for the following details in the format of a single string separated by '|':
-  - Role: ${data.role}
-  - Level: ${data.level}
-  - Experience: ${data.experience} years
-  - Technologies: ${data.technologies.join(", ")}
-  - Target Company: ${data.targetCompany}
-  - Resume Text: ${resumeText}  // Add extracted resume text
-
-Ensure the first 8 questions include a mix of behavioral, technical, and resume-related questions that are concise, relevant, and suitable for the specified role, level, and experience. For example, include questions like:
-- "Based on your resume, can you tell us about your experience with [specific technology or project]?"
-- "How did your experience with [specific skill/technology] contribute to the success of your previous projects?"
-- "Can you explain a challenging situation from your previous roles as described in your resume and how you overcame it?"
-
-The last 2 questions should be coding problems according to the level and experience with the following structure:
-
- Problem description: A concise explanation of the task.
- Input: Clearly defined input format.
- Output: Clearly defined output format.
- Example:
-   - Input: [example input]
-   - Output: [expected output]
-
-Return the output as a single string with each question separated by '|'.`;
+      const prompt = buildInterviewPrompt({
+        role,
+        jobDescription,
+        resumeText,
+        insights: insights || extractResumeInsights(resumeText, role, jobDescription),
+      });
 
       const { data: responseData } = await axios.post(
         `${import.meta.env.VITE_REACT_APP_BASE_URL}/api/gemini`,
@@ -145,220 +76,120 @@ Return the output as a single string with each question separated by '|'.`;
         .filter((q) => q.length > 0)
         .slice(0, 10);
 
-      if (questions && questions.length > 0) {
+      if (questions?.length) {
         const interviewId = Math.random().toString(36).substring(2, 10);
         navigate(`/admin/interview/${interviewId}`, {
-          state: { questions, interviewId, title: data.role, company: data.targetCompany },
+          state: { questions, interviewId, title: role, company: "Target Company" },
         });
       } else {
-        alert("No questions generated. Please try again.");
+        toast.error("No questions generated. Please try again.");
       }
-      setLoading(false);
     } catch (error) {
-      setLoading(false);
       console.error("Error fetching questions:", error);
-      alert("Failed to fetch interview questions. Please try again.");
+      toast.error("Failed to generate interview questions. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Box
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
-      minHeight="100vh"
-      px={3}
-    >
-      <Box maxWidth={800} width="100%" bgcolor="white" borderRadius={2} p={4}>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Grid container spacing={3}>
-            {/* Role */}
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="role"
-                control={control}
-                rules={{ required: "Role is required" }}
-                render={({ field }) => (
-                  <FormControl fullWidth>
-                    <InputLabel id="role-label">Role</InputLabel>
-                    <Select
-                      {...field}
-                      labelId="role-label"
-                      label="Role"
-                      error={!!errors.role}
-                    >
-                      {roles.map((role) => (
-                        <MenuItem key={role} value={role}>
-                          {role}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                )}
-              />
-            </Grid>
+    <div className="min-h-screen flex items-center justify-center px-4 py-10 font-mainFont">
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
+        className="w-full max-w-3xl"
+      >
+        <div
+          className="rounded-2xl p-8"
+          style={{
+            background: "rgba(13, 20, 37, 0.8)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            backdropFilter: "blur(16px)",
+            boxShadow: "0 0 60px rgba(26,110,250,0.08)",
+          }}
+        >
+          <div className="mb-8">
+            <div className="flex items-center gap-2 text-blue-400 mb-3">
+              <Sparkles size={18} />
+              <span className="text-sm font-medium uppercase tracking-[0.2em]">Resume-aware interview setup</span>
+            </div>
+            <h1 className="text-2xl font-semibold text-white">Create a more realistic mock interview</h1>
+            <p className="text-sm text-slate-400 mt-2">
+              Choose the role, paste the job description, upload your resume, and we’ll build questions around what matters most.
+            </p>
+          </div>
 
-            {/* Level */}
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="level"
-                control={control}
-                rules={{ required: "Level is required" }}
-                render={({ field }) => (
-                  <FormControl fullWidth>
-                    <InputLabel id="level-label">Level</InputLabel>
-                    <Select
-                      {...field}
-                      labelId="level-label"
-                      label="Level"
-                      error={!!errors.level}
-                    >
-                      {levels.map((level) => (
-                        <MenuItem key={level} value={level}>
-                          {level}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                )}
-              />
-            </Grid>
-
-            {/* Experience */}
-            <Grid item xs={12}>
-              <Controller
-                name="experience"
-                control={control}
-                rules={{
-                  required: "Experience is required",
-                  min: { value: 0, message: "Experience must be at least 0" },
-                }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label="Experience (in years)"
-                    type="number"
-                    error={!!errors.experience}
-                    helperText={errors.experience?.message}
-                  />
-                )}
-              />
-            </Grid>
-
-            {/* Technologies */}
-            <Grid item xs={12}>
-              <Controller
-                name="technologies"
-                control={control}
-                render={({ field }) => (
-                  <FormControl fullWidth>
-                    <InputLabel id="technologies-label">
-                      Technologies
-                    </InputLabel>
-                    <Select
-                      {...field}
-                      labelId="technologies-label"
-                      multiple
-                      input={<OutlinedInput label="Technologies" />}
-                      renderValue={(selected) => (
-                        <Box display="flex" gap={1} flexWrap="wrap">
-                          {selected.map((value) => (
-                            <Chip key={value} label={value} />
-                          ))}
-                        </Box>
-                      )}
-                    >
-                      {technologies.map((tech) => (
-                        <MenuItem key={tech} value={tech}>
-                          {tech}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                )}
-              />
-            </Grid>
-
-            {/* Target Company */}
-            <Grid item xs={12}>
-              <Controller
-                name="targetCompany"
-                control={control}
-                rules={{ required: "Target company is required" }}
-                render={({ field }) => (
-                  <FormControl fullWidth>
-                    <InputLabel id="company-label">Target Company</InputLabel>
-                    <Select
-                      {...field}
-                      labelId="company-label"
-                      label="Target Company"
-                      error={!!errors.targetCompany}
-                    >
-                      {companies.map((company) => (
-                        <MenuItem key={company} value={company}>
-                          {company}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                )}
-              />
-            </Grid>
-
-            {/* Resume Upload */}
-            <Grid item xs={12}>
-              <div className="mb-4">
-                <label className="block text-gray-600 mb-2">
-                  Upload Resume
-                </label>
-                <Button
-                  variant="contained"
-                  component="label"
-                  fullWidth
-                  startIcon={<Upload />}
-                  style={{
-                    backgroundColor: "#4CAF50",
-                    color: "white",
-                  }}
+          <form onSubmit={onSubmit} className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="role" className="text-slate-200">Job role</Label>
+                <select
+                  id="role"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-white"
                 >
-                  Upload Resume
-                  <input
-                    type="file"
-                    hidden
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleFileUpload}
-                  />
-                </Button>
-                {uploadedResume && (
-                  <Typography
-                    variant="body2"
-                    color="textSecondary"
-                    textAlign="center"
-                    mt={1}
-                  >
-                    {uploadedResume}
-                  </Typography>
-                )}
+                  <option value="" disabled>
+                    Select role
+                  </option>
+                  {roles.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
               </div>
-            </Grid>
 
-            {/* Submit Button */}
-            <Grid item xs={12}>
-              <Button
-                type="submit"
-                variant="contained"
-                fullWidth
-                color="primary"
-                disabled={loading}
-              >
-                {loading ? "Generating..." : "Generate Interview Questions"}
-              </Button>
-            </Grid>
-          </Grid>
-        </form>
-      </Box>
-    </Box>
+              <div className="space-y-2">
+                <Label htmlFor="resume" className="text-slate-200">Resume</Label>
+                <label className="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-slate-600 bg-slate-950/40 px-3 text-sm text-slate-300 transition hover:border-blue-400 hover:text-white">
+                  <Upload size={16} />
+                  {uploadedResume ? uploadedResume : "Upload PDF resume"}
+                  <input type="file" accept=".pdf" className="hidden" onChange={handleFileUpload} />
+                </label>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="jobDescription" className="text-slate-200">Job description</Label>
+              <Textarea
+                id="jobDescription"
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+                placeholder="Paste the job description you want to practice for..."
+                className="min-h-[180px] bg-slate-950/60 border-slate-700 text-white"
+              />
+            </div>
+
+            {insights && (
+              <div className="rounded-xl border border-slate-700 bg-slate-950/50 p-4">
+                <h2 className="text-white font-medium mb-3">What we inferred from your resume</h2>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {insights.skills?.map((skill) => (
+                    <span key={skill} className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-sm text-blue-200">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-sm text-slate-400">{insights.summary}</p>
+              </div>
+            )}
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                "Generate interview questions"
+              )}
+            </Button>
+          </form>
+        </div>
+      </motion.div>
+    </div>
   );
 };
 
