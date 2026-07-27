@@ -3,11 +3,10 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-const {uploadRoutes} = require('./routes/uploadRoutes');
 const { uploadPhoto, uploadResume } = require('./multerConfig');
 const protect = require('./middleware/authMiddleware');
 const User = require('./models/User');
+const { generateQuestions, generateFeedback } = require('./services/geminiService');
 dotenv.config();
 
 const app = express();
@@ -49,30 +48,39 @@ app.get('/ping', (req, res) => {
   res.send('pong');
 });
 
-// Initialize Google Generative AI
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENAI_API_KEY);
-
-// Existing Gemini API Call
-app.post("/api/gemini", async (req, res) => {
+app.post('/api/gemini', async (req, res) => {
   const { prompt } = req.body;
 
-  try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-    const result = await model.generateContent(prompt);
+  if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
+    return res.status(400).json({
+      message: 'Prompt is required.',
+      retryable: false,
+    });
+  }
 
-    const responseText = result.response.text();
-    res.json({ questions: responseText.split("|") });
+  try {
+    const questions = await generateQuestions(prompt);
+    return res.json({ questions });
   } catch (error) {
-    console.error("Error calling Gemini API:", error.message);
-    res.status(500).json({ message: "Error generating questions." });
+    console.error('Error calling Gemini API for questions:', error.message);
+    return res.status(500).json({
+      message: 'Failed to generate interview questions.',
+      retryable: true,
+      error: error.message,
+    });
   }
 });
 
-// New API Endpoint for Scoring and Feedback
-app.post("/api/gemini/feedback", async (req, res) => {
+app.post('/api/gemini/feedback', async (req, res) => {
   const { questionsAndAnswers } = req.body;
 
-  // Build prompt
+  if (!Array.isArray(questionsAndAnswers) || questionsAndAnswers.length === 0) {
+    return res.status(400).json({
+      message: 'questionsAndAnswers must be a non-empty array.',
+      retryable: false,
+    });
+  }
+
   const prompt = `
     For the following questions and answers, provide feedback in JSON format:
     [
@@ -85,48 +93,21 @@ app.post("/api/gemini/feedback", async (req, res) => {
     ]
 
     Questions and Answers:
-    ${questionsAndAnswers.map((qa, index) => `${index + 1}. Q: ${qa.question} A: ${qa.answer}`).join("\n")}
+    ${questionsAndAnswers.map((qa, index) => `${index + 1}. Q: ${qa.question} A: ${qa.answer}`).join('\n')}
   `;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-    const result = await model.generateContent(prompt);
-
-    let rawResponse = result.response.text();
-
-    // Remove code block markers (e.g., ```json and ```)
-    rawResponse = rawResponse.replace(/```json|```/g, "").trim();
-
-    // Initialize a variable to hold the parsed feedback
-    let feedback;
-
-    try {
-      // Parse the raw response as JSON
-      const parsedOnce = JSON.parse(rawResponse);
-
-      // Check if the parsed content is still a stringified JSON
-      if (typeof parsedOnce === "string") {
-        feedback = JSON.parse(parsedOnce); // Parse again
-      } else {
-        feedback = parsedOnce; // Already a JSON object
-      }
-    } catch (err) {
-      console.error("Error parsing Gemini API response:", err.message);
-      return res.status(500).json({
-        message: "Invalid response format from Gemini API.",
-        rawResponse, // Send the raw response for debugging purposes
-      });
-    }
-
-
-
-    // Calculate total score
+    const feedback = await generateFeedback(prompt);
     const totalScore = feedback.reduce((sum, item) => sum + (item.score || 0), 0);
 
-    res.json({ feedback, totalScore });
+    return res.json({ feedback, totalScore });
   } catch (error) {
-    console.error("Error calling Gemini API for feedback:", error.message);
-    res.status(500).json({ message: "Failed to generate feedback." });
+    console.error('Error calling Gemini API for feedback:', error.message);
+    return res.status(500).json({
+      message: 'Failed to generate feedback.',
+      retryable: true,
+      error: error.message,
+    });
   }
 });
 
